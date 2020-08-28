@@ -1,0 +1,204 @@
+﻿@model List<BradescoPGP.Web.Areas.Portabilidade.Models.RankingViewModel>
+@{ 
+    var dataAtual = DateTime.Now;
+    var minDate = new DateTime(dataAtual.Year, dataAtual.Month, 1);
+    var maxDate = dataAtual.AddDays(-1);
+}
+<div class="box no-border m-b-5">
+    <div class="box-header">
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="box-body with-border">
+        <div class="form-inline custom-search-inputs">
+            <div class="row relative">
+                <div class="text-center">
+                    <h3>Ranking de Especialistas</h3>
+                    <h5>
+                        @if (DateTime.TryParse(Request.Params.Get("De"), out var de) && DateTime.TryParse(Request.Params.Get("Ate"), out var ate))
+                        {
+                            @de.ToShortDateString() <span>Até</span> @ate.ToShortDateString()
+                        }
+                        else
+                        {
+                            @minDate.ToShortDateString() <span>Até</span> @maxDate.ToShortDateString()
+                        }
+                    </h5>
+                </div>
+                <form method="get" id="form-pesquisa" action="@Url.Action("Index","GerencialIndicadoresRanking", new { area = "Portabilidade" })">
+                    <div class="pull-right">
+                        <div class="col-lg-4 col-md-3 col-sm-6 col-xs-12">
+                            <div class="md-form">
+                                <label for="datepicker">De:</label>
+                                <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("De")" type="date" style="width:80%;" autocomplete="off" name="De" id="De" class="form-control onlyDatePicker">
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-3 col-sm-6 col-xs-12">
+                            <div class="md-form">
+                                <label for="datepicker2">Ate:</label>
+                                <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("Ate")" type="date" style="width:80%" autocomplete="off" name="Ate" id="Ate" class="form-control onlyDatePicker">
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-1 col-sm-12 col-xs-12 pull-right">
+                            <button type="submit" id="btn-search" class="btn btn-gradient mg-right" style="width:40%">Consultar&nbsp;</button>
+                            <button type="reset" id="btn-limpar" class="btn btn-default" style="width:40%">Limpar</button>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <br />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border m-b-5">
+            <div class="box-header">
+                <table class="table table-bordered" id="tabela-ranking">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Especialista</th>
+                            <th class="text-center">Quantidade de Solicitações</th>
+                            <th class="text-center">Valor das Solicitações</th>
+                            <th class="text-center">Quantidade Retida</th>
+                            <th class="text-center">Valor Retido</th>
+                            <th class="text-center">% Retenção</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rank in Model)
+                            {
+                                <tr class="text-center">
+                                    <td>@rank.Especialista</td>
+                                    <td>@rank.QuantidadeSolicitacoes</td>
+                                    <td>@(rank.ValorSolicitacoes.ToString("c2", System.Globalization.CultureInfo.CurrentCulture))</td>
+                                    <td>@rank.QuantidadeRetida</td>
+                                    <td>@(rank.ValorRetido.ToString("c2", System.Globalization.CultureInfo.CurrentCulture))</td>
+                                    <td>@rank.PorcentgemRetida</td>
+                                </tr>
+                            }
+                    </tbody>
+                </table>
+                @*@if (Model.Any())
+                {
+                    <div class="col-lg-1">
+                        <a href="@Url.Action("ExportarExcel", new { De = Request.Params.Get("De"), Ate = Request.Params.Get("Ate") })" target="_blank" class="btn btn-success m-r-10" data-target="#download" id="btn-download">
+                            <i class="fa fa-download icone-baixar"></i>
+                            Download
+                        </a>
+                    </div>
+                }*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script class="">
+        $(document).ready(function () {
+        
+            $('#form-pesquisa').submit(function (e) {
+                validarDataPesquisa(e);
+            });
+
+            $('.content-header h1').text('Ranking');
+            //$('.breadcrumb').append(' < li > <a href="#">Ranking</a></li >')
+          
+            var minContato = '@ViewBag.PercMinimoContato';
+            var minReten = '@ViewBag.PercMinimoRetencao'
+            var percMinContato = parseFloat(minContato.replace(',', '.'));
+            var perMinRetencao = parseFloat(minReten.replace(',', '.'));
+
+            //Coloca o ultimo registro com fundo vermelho
+            $('#tabela-ranking > tbody > tr').each(function (i, ele) {
+
+                var filhos = $(this).children().each(function (i, ele) {
+                    $(this).css({ 'border-radius': '5px' });
+                });
+
+                var tds = $(this).children();
+                var percentualContao = $(tds[4]).text();
+                var percentualRetencao = $(tds).last().text();
+
+                percentualContao = parseFloat(percentualContao);
+                percentualRetencao = parseFloat(percentualRetencao);
+
+                if (percentualContao < percMinContato) {
+                    $(tds.first()).addClass('bgred');
+                    $(tds[4]).addClass('bgred');
+                }
+
+                if (percentualRetencao < perMinRetencao) {
+                    $(tds.first()).addClass('bgred');
+                    $(tds).last().addClass('bgred');
+                }
+            });
+
+            $('#tabela-ranking').DataTable({
+                order: [5, 'desc'],
+                "paging": true,
+                "ordering": true,
+                "info": true,
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Foram encontrados _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+                    search: "Pesquisar",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                },
+                lengthMenu: [25, 50, 100],
+                fixedHeader: true,
+                columns: [
+                    {
+                        data: 'Especialista',
+                        width: '200px'
+
+                    },
+                    {
+                        data: 'Quantidade de Solicitações',
+                        width: '100px'
+                    },
+                    {
+                        data: 'Valor das Solicitações',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data
+                            } else {
+                                return parseFloat(data);
+                            }
+                        }
+                    },
+                    { data: 'Quantidade Retida' },
+                    {
+                        data: 'Valor Retido',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data
+                            } else {
+                                return parseFloat(data);
+                            }
+                        }
+                    },
+                    {
+                        data: '% Retenção',
+                    }
+                ]
+            });
+          
+
+        });
+
+    </script>
+}

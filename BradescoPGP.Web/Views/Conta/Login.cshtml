@@ -1,0 +1,46 @@
+﻿@{ 
+    Layout = null;
+}
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title class="title">Login | Homologação</title>
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css" />
+    <link rel="icon" href="~/favicon.ico" />
+    <style>
+        .col-lg-5 { margin: 10% 29%; }
+        img{width:120px; height:30px}
+        #formulario-login {padding:0 10%}
+        #box-form {
+            border-radius: 5px;
+            box-shadow: 3px 3px 3px 3px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            background-color: #fff;
+        }
+        input[type='text'] {padding:18px}
+    </style>
+</head>
+<body style="background-color:#ebebee">
+    <div class="row">
+        <div id="modais"></div>
+        <div class="col-lg-5">
+            <div id="box-form">
+                <img src="~/Medias/img/logo-bradesco.png"/>
+                <div id="formulario-login">
+                    <form method="post" action="@Url.Action("Login","Conta")">
+                        <h1 style="margin-bottom:20px;" class="text-center">Login | Homologação</h1><br />
+                        <div class="form-group">
+                            <label for="nomeUsuario">Codigo Usuário</label>
+                            <input type="text" class="form-control" id="nomeUsuario" placeholder="a123456" name="nomeUsuario"/>
+                        </div>
+                        <input type="submit" class="btn btn-primary pull-right" value="Enviar" />
+                        <div class="clearfix"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/Scripts/jquery.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+﻿@model List<BradescoPGP.Repositorio.Motivo>
+@{
+    var interator = 0;
+}
+<div class="box no-border m-b-5">
+    <div class="box-header">
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="box-body with-border">
+        <div class="form-inline custom-search-inputs">
+            <div class="row relative">
+                <div class="d-flex" style="flex-direction:column; align-items:center">
+                    <h3>Motivo/Submotivo</h3>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-gradient" id="btnMotivo" data-toggle="modal" data-target="#modal-incluirmotivo">Incluir Motivo</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border">
+            <div class="box-doby">
+                <div class="panel-group" id="accordion">
+                    @foreach (var motivo in Model)
+                    {
+                        interator++;
+
+                        <div class="panel">
+                            <div class="panel-heading">
+                                <table class="table" style="margin-bottom:0">
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:0; vertical-align:middle; width:80%;" class="text-left no-border">
+                                                <a href="#collapse-@interator" data-toggle="collapse" data-parent="#accordion">
+                                                    <h3 class="panel-title">@motivo.Descricao</h3>
+                                                </a>
+                                            </td>
+                                            <td class="no-border">
+                                                <div class="pull-right mg-bottom">
+                                                    <button data-id="@motivo.Id" type="button" class="btn btn-success btn-sm m-r-10 incluir-submotivo"
+                                                            @*data-toggle="tooltip" data-placement="top" title="Incluir submotivo"*@>
+                                                        <i class=" fa fa-plus-circle icone-novo"></i>
+                                                    </button>
+                                                    <button data-id="@motivo.Id" type="button" class="btn btn-primary btn-sm m-r-10 editar-motivo"
+                                                            @*data-toggle="tooltip" data-placement="top" title="Alterar motivo"*@>
+                                                        <i class="fa fa-edit icone-editar"></i>
+                                                    </button>
+                                                    <button data-id="@motivo.Id" type="button" class="btn btn-danger btn-sm m-r-10 excluir-motivo"
+                                                            @*data-toggle="tooltip" data-placement="top" title="Excluir Motivo"*@>
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="panel-collapse collapse" id="collapse-@interator">
+                                <table class="table table-hover">
+                                    <tbody>
+                                        @foreach (var subMotivo in motivo.SubMotivo.Where(s => s.EmUso.HasValue && s.EmUso.Value))
+                                        {
+                                            <tr>
+                                                <td style="width: 76.7%;" class="table-txt-left">@subMotivo.Descricao</td>
+                                                <td>
+                                                    <div style="display:flex; justify-content:center">
+                                                        <div class="dropdown-toggle">
+                                                            <button data-submotivoid="@subMotivo.Id" type="button" id="btn-editar1" class="btn btn-primary btn-sm m-r-10 editar-submotivo"
+                                                                    @*data-toggle="tooltip" data-placement="top" title="Editar submotivo"*@>
+                                                                <i class="fa fa-edit icone-editar"></i>
+                                                            </button>
+                                                            <button data-submotivoid="@subMotivo.Id" type="button" id="btn-editar1" class="btn btn-danger btn-sm m-r-10 excluir-submotivo"
+                                                                    @*data-toggle="tooltip" data-placement="top" title="Excluir submotivo"*@>
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*Modal editar submotivo*@
+<div class="modal fade" id="modal-editar-submotivo" tabindex="-1" role="dialog" aria-labelledby="btnEditar" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("EditarSubmotivo")" id="form-editar-submotivo">
+                <div class="modal-header">
+                    <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                       class="modal-title" id="exampleModalLabel">
+                        Editar Submotivo
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idSubmotivo" name="idSubmotivo" value="" />
+
+                    <div class="col-lg-6">
+                        <label for="motivo">Submotivo Atual</label>
+                        <input type="text" id="descricao-submotivo-atual" disabled class="form-control">
+                    </div>
+                    <div class="col-lg-6">
+                        <label for="submotivo">Submotivo</label>
+                        <input type="text" required id="descricao-submotivo-novo" name="submotivo" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" style="margin-top:20px" class="btn btn-gradient"><i class="fa fa-send"></i> Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*Modal Editar Motivo*@
+<div class="modal fade" id="modal-editar-motivo" tabindex="-1" role="dialog" aria-labelledby="btnEditar" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("EditarMotivo")" id="form-editar-motivo">
+                <div class="modal-header">
+                    <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                       class="modal-title" id="exampleModalLabel">
+                        Editar motivo
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idMotivoEditar" name="idMotivo" value="" />
+
+                    <div class="col-lg-6">
+                        <label for="motivo">Motivo Atual</label>
+                        <input type="text" id="descricao-motivo-atual" disabled class="form-control">
+                    </div>
+                    <div class="col-lg-6">
+                        <label for="submotivo">Novo Motivo</label>
+                        <input type="text" required id="descricao-motivo-novo" name="Motivo" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" style="margin-top:20px" class="btn btn-gradient"><i class="fa fa-send"></i> Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*Modal Novo Sub Motivo*@
+<div class="modal fade" id="modal-submotivo" tabindex="-1" role="dialog" aria-labelledby="btnEditar" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("NovoSubmotivo")" id="form-novo-submotivo">
+                <div class="modal-header">
+                    <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                       class="modal-title" id="exampleModalLabel">
+                        Novo Sub Motivo
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idMotivo" name="idMotivo" value="" />
+
+                    <div class="col-lg-6">
+                        <label for="motivo">Motivo</label>
+                        <input type="text" id="descricao-motivo" disabled class="form-control">
+                    </div>
+                    <div class="col-lg-6">
+                        <label for="submotivo">SubMotivo</label>
+                        <input type="text" required id="submotivo" name="submotivo" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    <button type="submit" style="margin-top:20px" class="btn btn-gradient"><i class="fa fa-send"></i> Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*Modal Confirmacao Exclusao*@
+<div class="modal fade" id="modal-confirmar-exclusao" tabindex="-1" role="dialog" aria-labelledby="btnEditar" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("Excluir")" id="form-exclusao">
+                <div class="modal-header">
+                    <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                       class="modal-title" id="exampleModalLabel">
+                        Confirmar
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idMotivoExclusao" name="idMotivo" value="" />
+                    <input type="hidden" id="idSubMotivoExclusao" name="idSubMotivo" value="" />
+                    <h4></h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    <button type="submit" style="margin-top:20px" class="btn btn-gradient"><i class="fa fa-send"></i>Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@*Modal Motivo*@
+<div class="modal fade" id="modal-incluirmotivo" tabindex="-1" role="dialog" aria-labelledby="btnIncluir" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("NovoMotivo")">
+                <div class="modal-header">
+                    <h4 class="modal-title d-inline" id="exampleModalLabel">
+                        Novo Motivo
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-10 col-lg-offset-1">
+                            <label for="motivo">Motivo</label>
+                            <input type="text" id="motivo" name="motivo" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    <button type="submit" class="btn btn-gradient"><i class="fa fa-send"></i> Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+
+            var idMotivo = null;
+            var idSubmotivo = null;
+
+            $("#title").text("Configurações");
+            $("#subtitle").text("Configurações > Parâmetros > Motivo/Submotivo");
+
+            //incluir Submotivo
+            $('.incluir-submotivo').on('click', function () {
+                idMotivo = $(this).data('id');
+                var descricaoMotivo = $(this).closest('tr').children()[0].children[0].children[0].innerHTML;
+                $('#descricao-motivo').val(descricaoMotivo);
+                $('#idMotivo').val(idMotivo);
+                $('#modal-submotivo').modal();
+            });
+
+            //Editar Motivo
+            $('.editar-motivo').on('click', function () {
+                idMotivo = $(this).data('id');
+                var descricaoMotivo = $(this).closest('tr').children()[0].children[0].children[0].innerHTML;
+                $('#idMotivoEditar').val(idMotivo);
+                $('#descricao-motivo-atual').val(descricaoMotivo);
+                $('#modal-editar-motivo').modal();
+            });
+
+            //Editar submotivo
+            $('.editar-submotivo').on('click', function () {
+                idSubmotivo = $(this).data('submotivoid');
+                var descricaoSubMotivo = $(this).closest('tr').children()[0].innerText;
+
+                $('#descricao-submotivo-atual').val(descricaoSubMotivo);
+                $('#idSubmotivo').val(idSubmotivo);
+                $('#modal-editar-submotivo').modal();
+            });
+
+            //Ecluir motivo
+            $('.excluir-motivo').on('click', function () {
+                idMotivo = $(this).data('id');
+                var descricaoMotivo = $(this).closest('tr').children()[0].children[0].children[0].innerHTML;
+
+                $('#modal-confirmar-exclusao h4').html('Tem certeza que deseja excluir o motivo <b>' + descricaoMotivo + '</b>?');
+                $('#modal-confirmar-exclusao').find('#idMotivoExclusao').val(idMotivo);
+                $('#modal-confirmar-exclusao').modal();
+            });
+
+            //Excluiur Submotivo
+            $('.excluir-submotivo').on('click', function () {
+                idMotivo = $(this).data('submotivoid');
+                var descricaoMotivo = $(this).closest('tr').children()[0].innerHTML;
+
+                $('#modal-confirmar-exclusao h4').html('Tem certeza que deseja excluir o submotivo <b>' + descricaoMotivo + '</b>?');
+
+                $('#modal-confirmar-exclusao').find('#idSubMotivoExclusao').val(idMotivo);
+                $('#modal-confirmar-exclusao').find('#form-exclusao').attr('Action', '@Url.Action("ExcluirSubmotivo")');
+
+                $('#modal-confirmar-exclusao').modal();
+            });
+
+        });
+
+    </script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+@*<div class="panel">
+        <div class="panel-heading">
+            <a href="#collapseTwo" data-toggle="collapse" data-parent="#accordion"><h3 class="panel-title d-inline">Melhores Condições</h3></a>
+            <div class="pull-right mg-bottom">
+                <button type="button" class="button btn-success m-r-10" data-toggle="modal" data-target="#modal-novo-1">
+                    <i class=" fa fa-plus-circle icone-novo"></i>
+                </button>
+                <button type="button" id="btn-editar1" class="button btn-primary m-r-10" data-toggle="modal" data-target="#modal-editar-1">
+                    <i class="fa fa-edit icone-editar"></i>
+                </button>
+                <button type="button" class="button btn-danger m-r-10" data-toggle="modal" id="btn-deletar1" data-target="#modal-deletar-1">
+                    <i class="fa fa-trash icone-deletar"></i>
+                </button>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="panel-collapse collapse" id="collapseTwo">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="table-txt-left">Rentabilidade</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar6" class="button btn-primary m-r-10" data-toggle="modal" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-6">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-txt-left">Taxa de Administração</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+
+                                    <button type="button" id="btn-editar7" class="button btn-primary m-r-10" data-toggle="modal" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-7">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <a href="#collapseThree" data-toggle="collapse" data-parent="#accordion"><h3 class="panel-title d-inline">Relacionamento com a Seguradora</h3></a>
+            <div class="pull-right mg-bottom">
+                <button type="button" class="button btn-success m-r-10" data-toggle="modal" data-target="#modal-novo-1">
+                    <i class=" fa fa-plus-circle icone-novo"></i>
+                </button>
+                <button type="button" id="btn-editar1" class="button btn-primary m-r-10" data-toggle="modal" data-target="#modal-editar-1">
+                    <i class="fa fa-edit icone-editar"></i>
+                </button>
+                <button type="button" class="button btn-danger m-r-10" data-toggle="modal" id="btn-deletar1" data-target="#modal-deletar-1">
+                    <i class="fa fa-trash icone-deletar"></i>
+                </button>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="panel-collapse collapse" id="collapseThree">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="table-txt-left">Centralização de Recursos em Outra Seguradora</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar8" class="button btn-primary m-r-10" data-toggle="modal" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-8">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deletar-8" tabindex="-1" role="dialog" aria-labelledby="btnDeletar" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Excluir
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>Tem Certeza que Deseja Excluir Este Sub Motivo?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" class="btn btn-danger">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-txt-left">Falta de Atendimento do Corretor - Demais Ramos</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar9" class="button btn-primary m-r-10" data-toggle="modal" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-9">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deletar-9" tabindex="-1" role="dialog" aria-labelledby="btnDeletar" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Excluir
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>Tem Certeza que Deseja Excluir Este Sub Motivo?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" class="btn btn-danger">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-novo-9" tabindex="-1" role="dialog" aria-labelledby="btnNovo" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Novo Motivo/Submotivo
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="col-lg-6">
+                                                <label for="motivo">Motivo</label>
+                                                <input type="text" id="motivo" class="form-control">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="submotivo">SubMotivo</label>
+                                                <input type="text" id="submotivo" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" style="margin-top:20px" class="btn btn-danger">Incluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <a href="#collapseFour" data-toggle="collapse" data-parent="#accordion"><h3 class="panel-title d-inline">Problemas com a Seguradora</h3></a>
+            <div class="pull-right mg-bottom">
+                <button type="button" class="button btn-success m-r-10" data-toggle="modal" data-target="#modal-novo-1">
+                    <i class=" fa fa-plus-circle icone-novo"></i>
+                </button>
+                <button type="button" id="btn-editar1" class="button btn-primary m-r-10" data-toggle="modal" data-target="#modal-editar-1">
+                    <i class="fa fa-edit icone-editar"></i>
+                </button>
+                <button type="button" class="button btn-danger m-r-10" data-toggle="modal" id="btn-deletar1" data-target="#modal-deletar-1">
+                    <i class="fa fa-trash icone-deletar"></i>
+                </button>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="panel-collapse collapse" id="collapseFour">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="table-txt-left">Erro em Alguma Operação do Grupo Bradesco Seguros</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar10" class="button btn-primary m-r-10" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-10">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deletar-10" tabindex="-1" role="dialog" aria-labelledby="btnDeletar" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Excluir
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>Tem Certeza que Deseja Excluir Este Sub Motivo?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" class="btn btn-danger">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-txt-left">Erro em Alguma Operação da Bradesco Vida e Previdência</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar11" class="button btn-primary m-r-10" data-toggle="modal" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-11">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deletar-11" tabindex="-1" role="dialog" aria-labelledby="btnDeletar" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Excluir
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>Tem Certeza que Deseja Excluir Este Sub Motivo?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" class="btn btn-danger">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <h3 class="panel-title d-inline"><a href="#"> Cliente Não Quer Ouvir a Proposta</a></h3>
+            <div class="pull-right">
+                <button type="button" class="button btn-success m-r-10" data-toggle="modal" data-target="#modal-novo-1">
+                    <i class=" fa fa-plus-circle icone-novo"></i>
+                </button>
+                <button type="button" id="btn-editar1" class="button btn-primary m-r-10" data-toggle="modal" data-target="#modal-editar-1">
+                    <i class="fa fa-edit icone-editar"></i>
+                </button>
+                <button type="button" class="button btn-danger m-r-10" data-toggle="modal" id="btn-deletar1" data-target="#modal-deletar-1">
+                    <i class="fa fa-trash icone-deletar"></i>
+                </button>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+    </div>*@

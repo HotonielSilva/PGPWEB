@@ -1,0 +1,354 @@
+﻿@model List<BradescoPGP.Web.Areas.Portabilidade.Models.SolicitacaoViewModel>
+@{
+    var interator = 0;
+    var dataAtual = DateTime.Now;
+    var minDate = new DateTime(dataAtual.Year, dataAtual.Month, 1);
+    var maxDate = dataAtual.AddDays(-1);
+}
+<div class="box no-border m-b-5">
+    <div class="box-header">
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="box-body with-border">
+        <div class="form-inline custom-search-inputs">
+            <div class="row relative text-center">
+                <form method="get" id="form-pesquisa" action="@Url.Action("Index","GerencialMotivoSubMotivo")">
+                    <h3>Motivo/Submotivo</h3>
+                    <h5>
+                        @if (DateTime.TryParse(Request.Params.Get("De"), out var de) && DateTime.TryParse(Request.Params.Get("Ate"), out var ate))
+                        {
+                            @de.ToShortDateString() <span>Até</span> @ate.ToShortDateString()
+                        }
+                        else
+                        {
+                            @minDate.ToShortDateString() <span>Até</span> @maxDate.ToShortDateString()
+                        }
+                    </h5>
+                    <hr />
+                    @*<div class="col-lg-4 col-md-3 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                <label for="especialista">Especialista:</label>
+                                <select style="width:70%; display:inline" class="form-control" id="especialista" name="especialista">
+                                    <option value=""></option>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>*@
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-xs-12 col-md-offset-3 col-lg-offset-5 ">
+                        <div class="md-form">
+                            <label for="datepicker">De:</label>
+                            <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("De")" type="date" style="width:80%" autocomplete="off" name="De" id="De" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-xs-12">
+                        <div class="md-form">
+                            <label for="datepicker2">Ate:</label>
+                            <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("Ate")" type="date" style="width:80%" autocomplete="off" name="Ate" id="Ate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-xs-12 pull-right ">
+                        <button type="submit" id="btn-search" class="btn btn-gradient" style="width:40%">Consultar</button>
+                        <button type="reset" id="btn-limpar" class="btn btn-default" style="width:40%">Limpar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-12 tbl-motivoSubmotivo">
+    <table class="table table-striped tabela-motivo">
+        <thead>
+            <tr class="btn-gradient">
+                <th class="text-center">Motivo/Submotivo</th>
+                <th class="text-center" style="padding-right:3%">Retidas</th>
+                <th class="text-center">Não Retidas</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border">
+            <div class="box-body">
+                @if (Model.Any())
+                {
+                    <div class="col-lg-3 col-xs-4">
+                        <h5><b></b></h5>
+                    </div>
+                    <div class="col-lg-1  col-xs-4 col-sm-2 alg-center" style="margin-left:8%">
+                        <h5 style="padding-left:141%"><b>Quantidade</b></h5>
+                    </div>
+                    <div class="col-lg-3 col-xs-4 col-sm-2 alg-center">
+                        <h5 style="padding-left:68%"><b>Valor</b></h5>
+                    </div>
+                    <div class="col-lg-2 col-xs-4 col-sm-2 alg-right">
+                        <h5 style="padding-left:46%; padding-right:12%;"><b>Quantidade</b></h5>
+                    </div>
+                    <div class="col-lg-2 col-xs-4 col-sm-2 alg-center">
+                        <h5 style="padding-left:3%"><b>Valor</b></h5>
+                    </div>
+                    <div class="panel-group" id="accordion">
+
+                        @foreach (var mutivo in ViewBag.TododsMotivos as List<BradescoPGP.Repositorio.Motivo>)
+                        {
+                            interator++;
+
+                            var quantidadeRetidoMotivo = Model.Count(s => s.ValorRetido != null && !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Retido") && s.MotivoId == mutivo.Id);
+                            var valorRetidoMotivo = Model.Where(s => s.MotivoId == mutivo.Id && !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Retido")).Sum(s => s.ValorRetido ?? 0);
+                            var quantidadeNaoRetido = Model.Count(s => !s.ValorRetido.HasValue && !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Não Ret") && s.MotivoId == mutivo.Id);
+                            var valorNaoRetido = Model.Where(s => s.MotivoId == mutivo.Id && !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Não Ret")).Sum(s => s.ValorPrevistoSaida);
+
+
+                            <div class="panel">
+                                <div class="panel-heading">
+                                    <table class="table" style="margin-bottom:0">
+                                        <tbody>
+                                            <tr style="cursor:pointer">
+                                                <td style="padding-left: 5px !important; width:22%" class="relative table-txt-left no-border">
+                                                    <a href="#collapse-@interator" data-toggle="collapse" data-parent="#accordion" style="color:#000000">
+                                                        @if (mutivo.EmUso.HasValue && !mutivo.EmUso.Value)
+                                                        {
+                                                            <h3 class="panel-title">@mutivo.Descricao&nbsp;<span class="label btn-danger fundo-danger">Inativo</span></h3>
+                                                        }
+                                                        else
+                                                        {
+                                                            <h3 class="panel-title">@mutivo.Descricao</h3>
+                                                        }
+                                                    </a>
+                                                </td>
+                                                <td class="no-border" style="width: 10%; text-align: right;">@quantidadeRetidoMotivo @*@(Model.Count(s => s.ValorRetido != null && s.SubStatusId == 1 && s.MotivoId == mutivo.Id))*@</td>
+                                                <td class="no-border" style="text-align: center; width: 20%;">@*@(Model.Where(s => s.MotivoId == mutivo.Id && s.SubStatusId == 1).Sum(s => s.ValorRetido ?? 0)*@ @valorRetidoMotivo.ToString("n2", System.Globalization.CultureInfo.CurrentCulture)</td>
+                                                <td style="width:6%; text-align: left;" class="no-border">@quantidadeNaoRetido @*@(Model.Count(s => !s.ValorRetido.HasValue && s.SubStatusId == 2 && s.MotivoId == mutivo.Id))*@</td>
+                                                <td class="no-border" style="width:10%; text-align:center">@*@(Model.Where(s => s.MotivoId == mutivo.Id && s.SubStatusId == 2).Sum(s => s.ValorPrevistoSaida)*@ @valorNaoRetido.ToString("n2", System.Globalization.CultureInfo.CurrentCulture)</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="panel-collapse collapse" id="collapse-@interator">
+                                    <table class="table table-hover" id="tabela-submotivos">
+                                        <tbody>
+                                            @foreach (var subMotivo in mutivo.SubMotivo)
+                                            {
+                                                <tr data-id="@subMotivo.Id">
+                                                    @if (subMotivo.EmUso.HasValue && !subMotivo.EmUso.Value)
+                                                    {
+                                                        <td style="width:22%;" class="table-txt-left">@subMotivo.Descricao &nbsp;<span class="label btn-danger fundo-danger">Inativo</span></td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td style="width:22%;" class="table-txt-left">@subMotivo.Descricao</td>
+                                                    }
+                                                    <td class="no-border" style="width:10%; text-align: right;">@Model.Count(s => s.SubmotivoId.HasValue && s.SubmotivoId.Value == subMotivo.Id && !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Retido"))</td>
+                                                    <td class="no-border" style="text-align: center; width: 20%;">@(Model.Where(s => s.SubmotivoId.HasValue && s.SubmotivoId == subMotivo.Id && s.ValorRetido.HasValue && !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Retido")).Sum(s => s.ValorRetido ?? 0).ToString("n2", System.Globalization.CultureInfo.CurrentCulture))</td>
+                                                    <td style="width:6%; text-align:left;">@Model.Where(s => s.SubmotivoId.HasValue && s.SubmotivoId.Value == subMotivo.Id && !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Não Ret")).Count()</td>
+                                                    <td style="width:10%; text-align:center">@(Model.Where(s => s.SubmotivoId.HasValue && s.SubmotivoId == subMotivo.Id && !s.ValorRetido.HasValue && !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Não Ret")).Sum(s => s.ValorPrevistoSaida).ToString("n2", System.Globalization.CultureInfo.CurrentCulture))</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <!--//Tabela quantidade-->
+                    <div class="col-lg-4 col-lg-offset-3" style="margin-left:32%">
+                        <table id="tabela-total-motivosubmotivo" style="max-width:100%" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="btn-gradient text-center">Quantidade</th>
+                                    <th class="btn-gradient text-center">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="btn-gradient text-center">Retidos</td>
+                                    <td class="text-center">@Model.Where(s => !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Retido")).Count()</td>
+                                    <td class="text-center">@(Model.Where(s => !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Retido")).Sum(s => s.ValorRetido)?.ToString("N2", new System.Globalization.CultureInfo("pt-br")))</td>
+                                </tr>
+                                <tr>
+                                    <td class="btn-gradient text-center"><b>Não Retidos</b></td>
+                                    <td class="text-center">@Model.Where(s => !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Não Ret")).Count()</td>
+                                    <td class="text-center">@Model.Where(s => !string.IsNullOrEmpty(s.SubStatus) && s.SubStatus.StartsWith("Não Ret")).Sum(s => s.ValorPrevistoSaida).ToString("N2", new System.Globalization.CultureInfo("pt-br"))</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row none" id="box-destino">
+    <div class="col-lg-12">
+        <div class="box no-border">
+            <div class="box-header">
+                <button class="close pull-right" onclick="javascript: document.getElementById('box-destino').classList.add('none')">&times;</button>
+            </div>
+            <div class="box-body">
+                <table class="table table-hover table-striped display" id="tabela-destino">
+                    <thead style="vertical-align:middle">
+                        <tr>
+                            <th>Especialista</th>
+                            <th>Nome do Cliente</th>
+                            <th>CPF</th>
+                            <th>Segmento</th>
+                            <th>Agência</th>
+                            <th>Data da Solicitação</th>
+                            <th>Número do Processo</th>
+                            <th>Número da Proposta</th>
+                            <th>Entidade</th>
+                            <th>Prazo Final</th>
+                            <th>Valor Solicitado</th>
+                            <th>Valor Retido</th>
+                            <th>Status</th>
+                            <th>SubStatus</th>
+                            <th class="alg-center">Atendimento</th>
+                            <th style="visibility:hidden">Id</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="col-lg-1">
+                    <a href="#" target="_blank" class="btn btn-success m-r-10" data-target="#download" id="btn-download">
+                        <i class="fa fa-download icone-baixar"></i>
+                        Download
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+
+
+
+        $(document).ready(function () {
+            $("#title").text("Gerencial");
+            $("#subtitle").text("Gerencial > Motivo/Submotivo");
+
+
+            $('#form-pesquisa').submit(function (e) {
+                validarDataPesquisa(e);
+            });
+
+            var datatable = $('#tabela-destino').DataTable({
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Foram encontrados _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+                    search: "Pesquisar",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                },
+                scrollX: true,
+                columns: [
+                    { data: 'Especialista' },
+                    { data: 'NomeDoCliente' },
+                    { data: 'CPF' },
+                    { data: 'Segmento' },
+                    { data: 'CodigoIdentificadorAgenciaBRA' },
+                    {
+                        data: 'DataInicioProcesso',
+                        render: function (data, type, row) {
+                            if (type == 'display')
+                                return data;
+                            else
+                                return moment(data);
+                        }
+                    },
+                    { data: 'CodIdentificadorProcesso' },
+                    { data: 'CodIdentificadorProposta' },
+                    { data: 'NomeEntidade' },
+                    { data: 'PrazoFinal' },
+                    {
+                        data: 'ValorPrevistoSaida',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data
+                            } else {
+                                return data != null ? parseFloat(data.replace(/\./g, '').replace(',', '.')) : 0;
+                            }
+                        }
+                    },
+                    {
+                        data: 'ValorRetido',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data
+                            } else {
+                                return data != null ? parseFloat(data.replace(/\./g, '').replace(',', '.')): 0;
+                            }
+                        }
+                    },
+                    { data: 'Status' },
+                    { data: 'SubStatus' },
+                    {
+                        data: 'Atendimento',
+                        orderable: false
+                    },
+                    {
+
+                        data: 'Id',
+                        render: function (data, type, row) {
+                            return `<span id="${data}" style = "visibility:hidden">${data}</span>`
+                        }
+                    }
+                ]
+            });
+
+            $('#tabela-submotivos tbody tr').on('click', function () {
+                var submotivoId = $(this).data('id');
+                var De = '@Request.Params.Get("De")'
+                var Ate = '@Request.Params.Get("Ate")'
+
+                $('#loading').toggleClass('none');
+
+                $('#box-destino').addClass('none');
+
+                var url = `@Url.Action("PreencherTabela")?submotivo=${submotivoId}&De=${De}&Ate=${Ate}`;
+
+                var urlExportacao = `@Url.Action("ExportarExcel")?submotivo=${submotivoId}&De=${De}&Ate=${Ate}`;
+
+                $('#btn-download').attr('href', urlExportacao)
+
+                datatable.ajax.url(url).load(function (resp) {
+
+                    if (resp.data.length > 0) {
+
+                        $('#box-destino').removeClass('none');
+
+                        document.getElementById('box-destino').scrollIntoView(true);
+
+                        $('#loading').toggleClass('none');
+                    }
+                    else {
+                        $('#loading').toggleClass('none');
+
+                        toastr['info']('Nenhum resultado encontrado');
+
+                    }
+                });
+
+
+            });
+        });
+
+    </script>
+}

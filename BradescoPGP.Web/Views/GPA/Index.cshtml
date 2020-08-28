@@ -1,0 +1,438 @@
+﻿@model BradescoPGP.Repositorio.GPA.BoletadorCentral
+
+<form action="#" class="form-inline">
+    <div class="box no-border mt-5">
+        <div class="box-body">
+            <div class="row">
+                <div class="col-lg-9 p-r-5">
+                   
+                <!--Atividades-->
+                    <fieldset id="atividades">
+                        <legend>Atividades</legend>
+
+                        <div class="col-lg-6" style="padding-left:0">
+                            <div class="col-lg-4 ">
+                                <div class="form-group">
+                                    <label>Data</label>
+
+                                    <input type="date" class="form-control" id="data" value="@DateTime.Now.Date.ToString("yyyy-MM-dd")" name="data" />
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group">
+                                    <label>Hora</label>
+                                    <input type="time" class="form-control" id="hora" value="@DateTime.Now.ToString("HH:mm")" name="data" />
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="form-group">
+                                    <label>Segmento</label>
+                                    @Html.DropDownList("segmento", (List<SelectListItem>)ViewBag.Segmentos, new { @class = "form-control" })
+                                    @*<select class="form-control">
+                                        <option disabled selected>:: Selecione ::</option>
+                                        <option>Prime</option>
+                                        <option>Outro Prime</option>
+                                    </select>*@
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="form-group">
+                                    <label>Agencia</label>
+                                    <input type="number" class="form-control" id="agencia" name="data" />
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="form-group">
+                                    <label>Gerente da Conta(Matricula)</label>
+                                    <input type="number" class="form-control" id="gerente-conta" name="data" />
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label>Consultor</label>
+                                    @Html.DropDownList("consultor", (List<SelectListItem>)ViewBag.Especialistas, new { @class = "form-control" })
+                                    
+                                    @*<select class="form-control">
+                                        <option disabled selected>:: Selecione ::</option>
+                                        <option>Ricardo Moreira Filho</option>
+                                        <option>Claudio Vasques Melo</option>
+                                    </select>*@
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <fieldset id="info-agencia">
+                            <legend>Info Agência</legend>
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label>Diretoria Regional</label>
+                                    <input type="text" readonly class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label>Gerencia Regional</label>
+                                    <input type="text" readonly class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label>Agência</label>
+                                    <input type="text" readonly class="form-control" />
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Tipo Contato</label>
+                                <select class="form-control">
+                                    <option disabled selected>:: Selecione ::</option>
+                                    <option>Ricardo Moreira Filho</option>
+                                    <option>Claudio Vasques Melo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Tipo Operação</label>
+                                <select class="form-control">
+                                    <option disabled selected>:: Selecione ::</option>
+                                    <option>Ricardo Moreira Filho</option>
+                                    <option>Claudio Vasques Melo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Tipo Canal</label>
+                                <select class="form-control">
+                                    <option disabled selected>:: Selecione ::</option>
+                                    <option>Ricardo Moreira Filho</option>
+                                    <option>Claudio Vasques Melo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Origem Contato</label>
+                                <select class="form-control">
+                                    <option disabled selected>:: Selecione ::</option>
+                                    <option>Ricardo Moreira Filho</option>
+                                    <option>Claudio Vasques Melo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                
+                </div>
+
+                <div class="col-lg-3 p-l-5">
+                    <!--Descritivo-->
+                    <fieldset>
+                        <legend>Descritivo</legend>
+                        <div class="col-lg-12" style="padding:0">
+                            <textarea cols="55" rows="6" style="height: 272px;" class="form-control"></textarea>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-9 p-r-5">
+                    <!--Identificação de Cliente-->
+                    <fieldset>
+                        <legend>Identificação do Cliente</legend>
+
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>Nome</label>
+                                <input type="text" name="nome" id="nome" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <div class="form-group">
+                                <label>Conta Corrente</label>
+                                <input type="number" name="nome" id="conta-corrente" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-1">
+                            <div class="form-group">
+                                <label>Díg</label>
+                                <input type="number" name="nome" id="dig" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-1" style="min-height:69px">
+                            <div class="form-group">
+                                <input type="radio" name="tipo-documento" id="tipo-cpf" checked /><label for="tipo-cpf">CPF</label><br />
+                                <input type="radio" name="tipo-documento" id="tipo-cnpj" /><label for="tipo-cnpj">CNPJ</label><br />
+                            </div>
+                        </div>
+                        <div class="col-lg-2" style="min-height:69px">
+                            <div class="form-group">
+                                <br /><input type="text" id="cpf" name="cpf" placeholder="___.___.___-__" class="form-control" />
+                                <input type="text" id="cnpj" name="cnpj" placeholder="__.___.___/____-__" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <div class="form-group">
+                                <label>Telefone</label>
+                                <input type="text" placeholder="(xx) 0000-0000" id="telefone" name="tel" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="email" name="tel" class="form-control" />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!--Negociações-->
+                    <fieldset>
+                        <legend>Negociações</legend>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Negócio Realizado</label>
+                                <select id="neg-rea" class="form-control">
+                                    <option value="" selected>:: Selecione ::</option>
+                                    <option value="">Negocio 1</option>
+                                    <option value="">Negocio 2</option>
+                                    <option value="">Negocio 3</option>
+                                    <option value="">Negocio 4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Pipeline</label>
+                                <select id="pipeline" class="form-control">
+                                    <option value="" selected>:: Selecione ::</option>
+                                    <option value="">Negocio 1</option>
+                                    <option value="">Negocio 2</option>
+                                    <option value="">Negocio 3</option>
+                                    <option value="">Negocio 4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Valor Pipeline</label>
+                                <input type="number" id="valor-pipeline" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label>Data Pipeline</label>
+                                <input type="date" id="data-pipeline" class="form-control" />
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <!--Cotações-->
+                    <fieldset>
+                        <legend>Cotações</legend>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label>Produtos</label>
+                                <select id="produtos" class="form-control">
+                                    <option value="" selected>:: Selecione ::</option>
+                                    <option value="">Produto 1</option>
+                                    <option value="">Produto 2</option>
+                                    <option value="">Produto 3</option>
+                                    <option value="">Produto 4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <div class="form-group">
+                                <label>Valor da cotação</label>
+                                <input type="number" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-2">
+                            <div class="form-group">
+                                <label>Taxa (%)</label>
+                                <input type="number" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label>Concorrente</label>
+                                <select id="concorrente" class="form-control">
+                                    <option value="" selected>:: Nenhum ::</option>
+                                    <option value="">Concorrente 1</option>
+                                    <option value="">Concorrente 2</option>
+                                    <option value="">Concorrente 3</option>
+                                    <option value="">Concorrente 4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label>Autorizante</label>
+                                <input type="text" id="autorizante" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-lg-2 pull-right">
+                            <div class="form-group">
+                                <br /><br />
+                                <div class="pull-right">
+                                    <input type="checkbox" id="indicou-corretora" />
+                                    <label for="indicou-corretora">Indicou Corretora</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="col-lg-3 p-l-5">
+                    <!--Negocios Realizados-->
+                    <fieldset>
+                        <legend>Negocios Realizados</legend>
+                        @*<textarea cols="55" rows="6" style="height: 210px; resize:both; padding:5px" disabled>@Html.Raw("PrimeiraLinha\nSegundaLinha")
+                        </textarea>*@
+                        <div style="height: 321px; padding:5px; overflow: scroll">
+                            <table class="table table-hover" id="teste">
+                                <thead>
+                                    <tr>
+                                        <th>P1465</th>
+                                        <th>P325872</th>
+                                        <th>P65203</th>
+                                        <th>P465489</th>
+                                        <th>P432588</th>
+                                        <th>P43256888</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>VP1</td>
+                                        <td>VP2</td>
+                                        <td>VP3</td>
+                                        <td>VP3</td>
+                                        <td>VP3</td>
+                                        <td>VP3</td>
+                                    </tr>
+                                    <tr>
+                                        <td>VP4</td>
+                                        <td>VP5</td>
+                                        <td>VP6</td>
+                                        <td>VP6</td>
+                                        <td>VP6</td>
+                                        <td>VP6</td>
+                                    </tr>
+                                    <tr>
+                                        <td>VP7</td>
+                                        <td>VP8</td>
+                                        <td>VP9</td>
+                                        <td>VP9</td>
+                                        <td>VP9</td>
+                                        <td>VP9</td>
+                                    </tr>
+                                    <tr>
+                                        <td>VP10</td>
+                                        <td>VP11</td>
+                                        <td>VP12</td>
+                                        <td>VP12</td>
+                                        <td>VP12</td>
+                                        <td>VP12</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-lg-8" style="padding-left:0"><br />
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary" id="incluir"><i class="fa fa-plus-circle no-m-l"></i> Incluir</button>
+                                <button type="button" class="btn btn-warning" id="alterar"><i class="fa fa-pencil-square-o no-m-l"> </i> Alterar</button>
+                                <button type="button" class="btn btn-danger" id="excluir"><i class="fa fa-trash-o no-m-l"></i> Excluir</button>
+                            </div>
+                            
+                        </div>
+                        @*<div class="col-lg-3" style="padding-left:0"><br />
+                            
+                        </div>
+                        <div class="col-lg-3" style="padding-left:0"><br />
+                        </div>*@
+                        <div class="col-lg-4" style="padding-left:0;padding-right:0">
+                            <label style="display:inline">Total(R$)</label>
+                            <input type="text" class="form-control" />
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <div class="box-footer">
+            <div class="row">
+                <div class="col-lg-2">
+                    <button type="submit" class="btn btn-success"><i class="fa fa-save no-m-l"></i> Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts{
+    
+    <script>
+
+        $(document).ready(function () {
+            $('#cnpj').hide();
+
+            var linhaSelecionada = null;
+
+            $('input[name="tipo-documento"]').on('change',function () {
+                if (this.id == "tipo-cpf") {
+                    $('#cpf').show();
+                    $('#cnpj').hide();
+                }
+                else {
+                    $('#cpf').hide();
+                    $('#cnpj').show();
+                }
+            });
+
+            $('#teste > tbody').on('click', 'tr', function (e) {
+                linhaSelecionada = $(e.target).closest('tr');
+
+                core.home.linhaSelecionadaEfeito(linhaSelecionada, '#teste')
+
+                console.log(e);
+            });
+
+            $('#alterar').click(function () {
+                if (linhaSelecionada == null) {
+                    alert("Você precisa selecionar um linha");
+                }
+                else {
+                    $(linhaSelecionada).find('td').get(0).innerHTML = "Alterei";
+                }
+            });
+
+            $('#incluir').click(function () {
+                $('#teste > tbody').append(`<tr>
+                                        <td>VP1</td>
+                                        <td>VP2</td>
+                                        <td>VP3</td>
+                                        <td>VP3</td>
+                                        <td>VP3</td>
+                                        <td>VP3</td>
+                                    </tr>`);
+
+
+            });
+
+            $('#excluir').click(function () {
+                if (linhaSelecionada == null) {
+                    alert("Você precisa selecionar um linha");
+                }
+                else {
+                    $(linhaSelecionada).remove();
+                    linhaSelecionada = null;
+                    alert('Excluido...');
+                }
+            });
+
+        });
+    </script>
+    }

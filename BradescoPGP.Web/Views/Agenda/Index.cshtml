@@ -1,0 +1,288 @@
+﻿@model BradescoPGP.Web.Models.AgendaViewModel
+@using System.Security.Claims
+@{
+    string scrollVenc, scrollPipe, scrollTed, scrollNiver, scrollEvento;
+    scrollVenc = Model.Vencimentos.Any() ? "scroll" : "";
+    scrollTed = Model.TEDs.Any() ? "scroll" : "";
+    scrollPipe = Model.Pipelines.Any() ? "scroll" : "";
+    scrollNiver = Model.Aniversariantes.Any() ? "scroll" : "";
+    scrollEvento = Model.Eventos.Any() ? "scroll" : "";
+
+    var nomeConsultor = ((ClaimsIdentity)User.Identity).FindFirst(ClaimTypes.Name).Value;
+    var matricula = ((ClaimsIdentity)User.Identity).FindFirst("matricula").Value;
+
+    var events = Newtonsoft.Json.JsonConvert.SerializeObject(EventoFullCalendarViewModel.Mapear(Model), Newtonsoft.Json.Formatting.Indented, new Newtonsoft.Json.Converters.JavaScriptDateTimeConverter());
+}
+
+<!-- Main content -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="box box-solid">
+            <div class="box-header with-border">
+                <h4 class="box-title">Eventos</h4>
+            </div>
+            <div class="box-body">
+                <!-- the events -->
+                <div id="external-events">
+                    <div class="eventos-vencimento">
+                        <p class="title">Vencimentos</p>
+                        <div class="@scrollVenc">
+                            @if (Model.Vencimentos.Any())
+                            {
+                                foreach (var venc in Model.Vencimentos.OrderByDescending(o => o.Dt_Vecto_Contratado))
+                                {
+                                    var mindaDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1).Date;
+                                    var maxDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)).AddMonths(1).Date;
+                                    if (venc.Dt_Vecto_Contratado.Date >= mindaDate && venc.Dt_Vecto_Contratado.Date <= maxDate)
+                                    {
+
+                                        var bg = venc.Dt_Vecto_Contratado.Date < DateTime.Now.Date ? "bg-red" : "bg-blue";
+
+                                        <div data-agencia="@venc.Cod_Agencia" data-conta="@venc.Cod_Conta_Corrente" class="external-event @bg">@string.Format("{0:c}", venc.SALDO_ATUAL) @venc.Dt_Vecto_Contratado.ToShortDateString() @venc.Nm_Cliente_Contraparte</div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <div> Nenhuma informação localizada. </div>
+                            }
+                        </div>
+                    </div><hr />
+                    <div class="eventos-pipeline">
+                        <p class="title">Pipelines</p>
+                        <div class="@scrollPipe">
+                            @if (Model.Pipelines.Any())
+                            {
+                                foreach (var pipe in Model.Pipelines.OrderByDescending(o => o.DataProrrogada.HasValue ? o.DataProrrogada : o.DataPrevista))
+                                {
+                                    string bg = string.Empty;
+
+                                    if (pipe.DataProrrogada.HasValue)
+                                    {
+                                        if (pipe.DataProrrogada.Value.Date <= DateTime.Now.Date)
+                                        {
+                                            bg = pipe.DataProrrogada?.Date < DateTime.Now.Date ? "bg-red" : "bg-blue";
+
+                                            <div data-agencia="@pipe.Agencia" data-conta="@pipe.Conta" class="external-event @bg">
+                                                @string.Format("{0:c}", pipe.ValorDoPipe) @pipe.DataProrrogada.Value.ToString("dd/MM/yyyy") @pipe.NomeCliente
+                                            </div>
+                                        }
+                                    }
+                                    else if( pipe.DataPrevista.Date <= DateTime.Now.Date)
+                                    {
+                                        bg = pipe.DataPrevista.Date < DateTime.Now.Date ? "bg-red" : "bg-blue";
+
+                                        <div data-agencia="@pipe.Agencia" data-conta="@pipe.Conta" class="external-event @bg">
+                                            @string.Format("{0:c}", pipe.ValorDoPipe) @pipe.DataPrevista.ToString("dd/MM/yyyy")  @pipe.NomeCliente
+                                        </div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <div> Nenhuma informação localizada. </div>
+                            }
+                        </div>
+                    </div><hr />
+                    <div class="eventos-ted">
+                        <p class="title">Teds</p>
+                        <div class="@scrollTed">
+                            @if (Model.TEDs.Any())
+                            {
+                                foreach (var ted in Model.TEDs.OrderByDescending(o => o.Data))
+                                {
+                                    var bg = ted.Data.Date < DateTime.Now.Date ? "bg-red" : "bg-blue";
+
+                            <div data-agencia="@ted.Agencia" data-conta="@ted.Conta" class="external-event @bg">@string.Format("{0:c}", ted.Valor)  @ted.Data.ToShortDateString() @ted.NomeCliente</div>
+                                }
+                            }
+                            else
+                            {
+                                <div> Nenhuma informação localizada. </div>
+                            }
+                        </div>
+                    </div><hr />
+                    
+                    <div class="eventos-aniversario">
+                        <p class="title">Aniversários</p>
+                        <div class="@scrollNiver">
+                            @if (Model.Aniversariantes.Any())
+                            {
+                                foreach (var niver in Model.Aniversariantes.OrderByDescending(o => o.DataAniversario))
+                                {
+                                    if (niver.DataAniversario.Day == DateTime.Now.Day && niver.DataAniversario.Month == DateTime.Now.Month)
+                                    {
+                                        <div data-agencia="@niver.Agencia" data-conta="@niver.Conta" class="external-event bg-blue">@niver.DataAniversario.ToShortDateString() @niver.Nome</div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <div> Nenhuma informação localizada. </div>
+                            }
+                        </div>
+                    </div><hr />
+
+                    
+                    <div id="meus-eventos">
+                        <p class="title">Meus Eventos</p>
+                        <div class="@scrollEvento eventos">
+                            @if (Model.Eventos.Any())
+                            {
+                                foreach (var evento in Model.Eventos.OrderByDescending(o => o.DataHoraInicio))
+                                {
+
+                                    if (evento.DataHoraInicio.Date == DateTime.Now.Date)
+                                    {
+                                        var bg = evento.DataHoraInicio < DateTime.Now ? "bg-red" : "bg-blue";
+                                        <div class="external-event @bg" data-start="@evento.DataHoraInicio.ToString("yyyy-MM-dd HH:mm:ss")"
+                                             data-end="@evento.DataFim.ToString("yyyy-MM-dd HH:mm:ss")" data-description="@evento.Descricao"
+                                             data-title="@evento.Titulo"
+                                             onclick="detalheEvento(this)">
+                                            @evento.DataHoraInicio.ToString("dd/MM/yyyy HH:mm") @evento.Titulo
+                                            <span data-id="@evento.Id" class="excluir-evento pull-right"><i class="fa fa-close"></i></span>
+                                        </div>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <div> Nenhuma informação localizada. </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+            <div class="box-footer">
+                <div class="box-body">
+                    <button id="add-new-event" type="button" class="btn btn-info btn-block">Novo Evento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /.col -->
+    <div class="col-md-9">
+        <div class="box box-primary">
+            <div class="box-body no-padding">
+                <!-- THE CALENDAR -->
+                <div id="calendar"></div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /. box -->
+    </div>
+    <!-- /.col -->
+</div>
+<!-- /.row -->
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+            $('#calendar').fullCalendar({
+                //themeSystem: 'bootstrap4',
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay'
+                },
+                monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho','Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+                buttonText: {
+                    today: 'Hoje',
+                    month: 'Mês',
+                    week: 'Semana',
+                    day: 'Dia'
+                },
+                height: 820,
+                locale: 'pt-br',
+                eventLimit: true,
+                eventClick: function (info) {
+                    $('#modal-info-evento').modal();
+                    $('#modal-info-evento').on('shown.bs.modal', function () {
+                        var modal = $(this);
+
+                        modal.find('.modal-title').text(info.title);
+                        modal.find('.modal-body #data-inicial').val(moment(info.start).format('DD/MM/YYYY HH:mm:ss'));
+                        modal.find('.modal-body #data-final').val(moment(info.end).format('DD/MM/YYYY HH:mm:ss'));
+                        modal.find('.modal-body #descricao').text(info.description);
+                    });
+                },
+                eventRender: function (event, element) {
+                    element.qtip({
+                        content: {
+                            title: { text: event.title },
+                            text: '<span class="title"><b>Início:</b> </span>' + ($.fullCalendar.formatDate(event.start, 'HH:mm')) +
+                                '<br><span class="title"><b>Termino:</b> </span>' + ($.fullCalendar.formatDate(event.end, 'HH:mm')) +
+                                '<br><span class="title"><b>Descrição:</b> </span>' + event.description
+                        },
+                        //show: { solo: true },
+                        style: {
+                            width: 200,
+                            padding: 5,
+                            color: 'black',
+                            textAlign: 'left',
+                            border: {
+                                width: 1,
+                                radius: 3
+                            },
+                            tip: 'topLeft',
+                            classes: {
+                                tooltip: 'ui-widget',
+                                tip: 'ui-widget',
+                                title: 'ui-widget-header',
+                                content: 'ui-widget-content'
+                            }
+                        }
+                    });
+                },
+                events: @Html.Raw(events),
+                nowIndicator: true,
+                editable: true,
+            })
+
+            $('#add-new-event').on('click', function (e) {
+                core.modal.modalNovoEvento('@Url.Action("NovoEvento","Agenda", new { area = "" })','@nomeConsultor', '@matricula');
+            });
+
+            //Excluir evento
+            $('#meus-eventos .eventos').on('click','.excluir-evento', function (e) {
+                var elem = $(this);
+                var id = elem.data('id');
+
+                $.ajax({
+                    url: '@Url.Action("DeletarEvento","Agenda", new { area = "" })',
+                    type: 'post',
+                    data: { id },
+                    success: function (resp) {
+                        if (resp.success) {
+                            $('#calendar').fullCalendar('refetchEvents');
+                            elem.parent().remove();
+                            core.notify.showNotify("Evento excluido com sucesso!", 'info', 'top-center');
+                        } else {
+                            core.notify.showNotify("Não foi possível excluir este evento.", 'error', 'top-center');
+                        }
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
+            });
+
+            //Redireciona para Home
+            $('.external-event').on('click', function (e) {
+
+                if ($(this).data('agencia') != undefined && $(this).data('conta') != undefined) {
+                    var agencia = $(this).data('agencia');
+                    var conta = $(this).data('conta');
+                    window.location.href = '@Url.Action("RedirecionarHome","Home", new { area = "" })' + '?agencia=' + agencia + '&conta=' + conta;
+                }
+
+            });
+
+        })
+
+    </script>
+
+}

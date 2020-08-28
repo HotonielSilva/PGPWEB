@@ -1,0 +1,116 @@
+﻿@model List<BradescoPGP.Web.Models.UsuarioViewModel>
+
+
+@{
+    var filtro = new BradescoPGP.Web.Models.FiltroUsuario();
+
+    if (ViewData["filtro"] != null)
+    {
+        filtro = (ViewData["filtro"] as BradescoPGP.Web.Models.FiltroUsuario);
+    }
+}
+
+<div class="box box-danger m-b-5">
+    <div class="box-header">
+        <h3 class="box-title">Gerenciar usuários</h3>
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="box-body with-border">
+
+        <a href="@Url.Action("Novo", "Usuario")" class="btn btn-primary mx-1">
+            Novo usuário
+        </a>
+
+        <a href="@Url.Action("ExportarExcel", "Usuario")" class="btn btn-success"> <span><i class="fa fa-table"></i></span> Exportar</a>
+
+        @if (ViewBag.error != null)
+        {
+            <label class="text-danger mx-1">@Html.Raw(ViewBag.error)</label>
+        }
+
+        @if (ViewBag.equipes != null)
+        {
+            <br />
+            <div>
+                <form action="@Url.Action("Pesquisa", "Usuario")" class="my-4" method="post">
+
+                    <div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
+
+                        <div class="form-group">
+                            <label for="pesquisa">Nome</label>
+
+                            <input type="text" name="nome" id="pesquisa" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
+                        <div class="form-group">
+                            <label for="equipe">Equipe</label>
+                            <select name="equipe" id="equipe" class="form-control">
+                                <option></option>
+                                @foreach (var equipe in ViewBag.equipes)
+                                {
+                                    var selected = !string.IsNullOrWhiteSpace(filtro.Equipe) && filtro.Equipe.Equals(equipe) ? "selected=\"selected\"" : string.Empty;
+
+                                    <option value="@equipe" @selected>@equipe</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-12 col-sm-12 col-xs-12">
+                        <div class="form-group">
+                            <button class="btn btn-secondary" style="margin-top:1.8em">Buscar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        }
+
+        <table class="table table-responsive display" id="table-usuarios">
+            <thead>
+                <tr>
+                    <th>Matrícula</th>
+                    <th>Nome</th>
+                    <th>Equipe</th>
+                    <th>Tipo de acesso</th>
+                    <th>Código de usuário</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.Raw(item.Matricula)</td>
+                        <td>@Html.Raw(item.Nome)</td>
+                        <td>@Html.Raw(item.Equipe)</td>
+                        <td>@Html.Raw(item.Perfil.Descricao)</td>
+                        <td>@Html.Raw(item.NomeUsuario)</td>
+                        <td class="center-block">
+                            <div style="display:flex; justify-content:space-between">
+                                <a href="@Url.Action("Detalhes", "Usuario", new {matricula = item.Matricula})" class="btn btn-info">Detalhes</a>
+                                <a href="@Url.Action("Editar", "Usuario", new {matricula = item.Matricula})" class="btn btn-success">Editar</a>
+                                <button type="button" data-toggle="modal" data-target="#modal-confirm" onclick="confirmarDelete('@item.Matricula', '@item.Nome')" class="btn btn-danger">Excluir</button>
+                            </div>
+                        
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<style>
+    .my-4 {
+        margin-top: 3em;
+        margin-bottom: 3em;
+    }
+</style>
+

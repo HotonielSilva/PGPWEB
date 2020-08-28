@@ -1,0 +1,275 @@
+﻿@model List<BradescoPGP.Web.Models.VencimentoViewModel>
+@using BradescoPGP.Common
+
+<div class="box box-danger m-b-5">
+    <div class="box-header">
+        <h3 class="box-title">Busca Rápida</h3>
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="box-body with-border">
+        <form id="form-pesquisa-vencimento" action="@Url.Action("Index", "Vencimento")" method="get">
+            <div class="form-inline custom-search-inputs">
+                <div class="row relative" id="search-venc">
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <div class="form-group">
+                            <label for="especialista">Especialista</label>
+                            @Html.DropDownList("especialista", (List<SelectListItem>)ViewBag.Especialistas, new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="form-group">
+                            <label for="agencia">Agencia</label>
+                            <input type="number" id="agencia" value="@Request.Params.Get("agencia")" name="agencia" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="form-group">
+                            <label for="conta">Conta</label>
+                            <input type="number" id="conta" name="conta" value="@Request.Params.Get("conta")" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <label for="situacao">Situação</label><br />
+                        @Html.DropDownList("situacao", (List<SelectListItem>)ViewBag.Status, new { @class = "form-control" })
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="form-group">
+                            <label for="de">De&nbsp;</label>
+                            <input type="date" id="de" width="30" name="de" class="form-control" /><br />
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="form-group">
+                            <label for="ate">Até</label>
+                            <input type="date" id="ate" name="ate" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row relative">
+                    @if (!User.IsInRole(NivelAcesso.Especialista.ToString()))
+                    {
+                        <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                            <div class="form-group">
+                                <label for="equipe">Equipe</label>
+                                @Html.DropDownList("equipe", (List<SelectListItem>)ViewBag.Equipes, new { @class = "form-control" })
+                            </div>
+                        </div>
+                    }
+                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12 pull-right">
+                        <br />
+                        <div class="pull-right">
+                            <button type="submit" id="btn-search" class="btn btn-danger">Buscar</button>
+                            <a href="@Url.Action("Index", "Vencimento")" class="btn btn-default">Limpar filtros</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border">
+            <div class="box-header no-border">
+                <div class="pull-right"><small>Data da última importação: @ViewBag.UltimaImportacao</small></div>
+            </div>
+            <div class="box-body">
+                <table id="table-vencimento" class="table table-hover display">
+                    <thead>
+                        <tr>
+                            <th>Especialista</th>
+                            <th>Agencia</th>
+                            <th>Conta</th>
+                            <th>Cliente</th>
+                            <th>Produto</th>
+                            <th>Taxa (%)</th>
+                            <th>Data Vencimento</th>
+                            <th>Saldo Atual</th>
+                            <th>Situação</th>
+                            <th>Resetar Status</th>
+                            <th>Editar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var venc in Model)
+                        {
+                            <tr id="@venc.Id" ondblclick="redirecionarHome(this)">
+                                <td>@venc.Especialista</td>
+                                <td>@venc.Agencia</td>
+                                <td>@venc.Conta</td>
+                                <td>@venc.Cliente</td>
+                                <td>@venc.Produto</td>
+                                <td>@venc.PercentualIndexador</td>
+                                <td>@venc.DataVencimento.ToString("dd/MM/yyyy")</td>
+                                <td>@venc.SaldoAtual</td>
+                                <td>@venc.Status</td>
+                                <td class="text-center">
+                                    <button onclick="core.home.resetStatus(this, '@Url.Action("ResetarStatus","Vencimento")','Vencimento')" style="background-color:unset;border:unset"
+                                            title="Resetar Status para Em Branco" class="btn btn-default">
+                                        <i class="fa fa-undo"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="javascript: $('.StatusId').attr('id','@venc.Id')" data-toggle="modal" data-target="#modal-update-venc" class="btn-edit-pencil"><i class="fa fa-pencil" style="color:red"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (Model.Any())
+                {
+                    <a class="btn btn-sm btn-success" href="#" onclick="exportarExcel()"> <i class="fa fa-table"></i> Exportar Excel </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade mymodal" id="modal-update-venc" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm">
+        <!-- modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"> <i class='fa fa-times'></i> </button>
+                <h4 class="modal-title">Editar Vencimento</h4>
+            </div>
+            <div class="modal-body">
+                <span>
+                    <select name="StausId" class="form-control" id="Status" style="width:200px; display:inline">
+                        @foreach (var item in (List<SelectListItem>)ViewBag.Status)
+                        {
+                            <option value="@item.Value"> @item.Text </option>
+                        }
+                    </select>
+
+                    <button onclick="atualizarVencimento(this)" class="btn btn-danger btn-sm StatusId"  id="">Alterar</button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        function atualizarVencimento(elem) {
+            var id = $(elem).attr('id');
+            var redirectUrl = '@Request.Url.PathAndQuery';
+            var StatusId = $(Status).val();
+            location.href = `@Url.Action("AtualizarVencimentoNaTela", "Vencimento")?id=${id}&StatusId=${StatusId}&redirectUrl=${redirectUrl}`;
+        }
+
+        function redirecionarHome(ele) {
+            $(ele).css({ 'background-color': '#f69595'})
+            var agencia = $($(ele).children()[1]).text()
+            var conta = $($(ele).children()[2]).text()
+            window.location.href = '@Url.Action("RedirecionarHome","Home")?agencia=' + agencia + '&conta=' + conta;
+        }
+
+        function exportarExcel() {
+
+            var agencia = '@Request.Params.Get("agencia")';
+            var conta = '@Request.Params.Get("conta")';
+            var situacao = '@Request.Params.Get("situacao")';
+            var de = '@Request.Params.Get("de")';
+            var ate = '@Request.Params.Get("ate")';
+            var equipe = '@Request.Params.Get("equipe")';
+
+            var link = `@Url.Action("ExportarExcel", "Vencimento")?especialista=@Html.Raw(Request.Params.Get("especialista"))&agencia=${agencia}&conta=${conta}&quipe=${equipe}&situacao=${situacao}&de=${de}&ate=${ate}`;
+            window.open(link, '_blank');
+        }
+
+        $(document).ready(() => {
+            //Efeirto de linha selecionada
+            core.home.efeitoSelecaoLinha('#table-vencimento');
+
+            //DataTable
+            $('#table-vencimento').DataTable({
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Foram encontrados _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                },
+                scrollColapse: true,
+                searching: false,
+                fixedHeader: true,
+                order: [[6, "desc"]],
+                lengthMenu: [25,50,100],
+                columns: [
+                    { data: "Especialista"},
+                    {data: "Agencia"},
+                    {data: "Conta"},
+                    {data: "Cliente"},
+                    { data: "Produto" },
+                    {data: "Taxa (%)"},
+                    {
+                        data: "Data Vencimento",
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data;
+                            }
+                            else {
+                                return moment(data, 'DD/MM/YYYY').toDate();
+                            }
+                        }
+                    },
+                    {
+                        data: "Saldo Atual",
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return parseFloat(data.replace(',', '.')).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                            }
+                            else {
+                                return parseFloat(data.replace(',', '.'));
+                            }
+                        }
+                    },
+                    { data: "Situação" },
+                    {data: "Resetar Status"},
+                    {data: "Editar"}
+                ]
+            })
+
+            //Validações formulario
+            $('#form-pesquisa-vencimento').submit(function (e) {
+
+                var especialista = $('#especialista').val();
+                var agencia = $('#agencia').val();
+                var conta = $('#conta').val();
+                var situacao = $('#situacao').val();
+                var de = $('#de').val();
+                var ate = $('#ate').val();
+                var equipe = $("#equipe").val();
+
+                if (conta == "" && agencia == "" && especialista == "" && de == "" && ate == "" && situacao == "" && equipe == "") {
+                    e.preventDefault();
+                    core.notify.showNotify("Para realizar um filtro preencha os campos desejados abaixo", 'warning', 'top-center');
+                    return;
+                }
+
+                if (conta != "" && agencia == "" && especialista == "") {
+                    e.preventDefault();
+                    core.notify.showNotify("Não é possivel filtras apenas por Conta, preencha Agencia e Conta ou apenas Agencia", 'warning', 'top-center');
+                    return;
+                }
+
+                if (de > ate) {
+                    e.preventDefault();
+                    core.notify.showNotify("O range de data está inválido, o valor do campo <b>De</b> é maior do que o campo <b>Até</b>", 'warning', 'top-center');
+                    return;
+                }
+            })
+
+        })
+    </script>
+}

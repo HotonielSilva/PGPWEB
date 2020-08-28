@@ -1,0 +1,220 @@
+﻿
+@{
+    var interator = 0;
+    var dataAtual = DateTime.Now;
+    var minDate = new DateTime(dataAtual.Year, dataAtual.Month, 1);
+    var maxDate = dataAtual.AddDays(-1);
+
+}
+<div class="box no-border m-b-5">
+    <div class="box-header">
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="box-body with-border">
+        <div class="form-inline custom-search-inputs">
+            <div class="row relative">
+                <form method="get" id="form-pesquisa" action="@Url.Action("Index","GerencialIndicadoresEntidade")">
+                    <div class="d-flex" style="flex-direction:column; align-items:center">
+                        <h3 class="text-center">Entidade Solicitante</h3>
+                        <h5>
+                            @if (DateTime.TryParse(Request.Params.Get("De"), out var de) && DateTime.TryParse(Request.Params.Get("Ate"), out var ate))
+                            {
+                                @de.ToShortDateString() <span>Até</span> @ate.ToShortDateString()
+                            }
+                            else
+                            {
+                                @minDate.ToShortDateString() <span>Até</span> @maxDate.ToShortDateString()
+                            }
+                        </h5>
+                    </div>
+                    <hr />
+                    <div class="pull-right">
+                        <div class="col-lg-4 col-md-3 col-sm-6 col-xs-12">
+                            <div class="md-form">
+                                <label for="datepicker">De:</label>
+                                <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("De")" type="date" style="width:80%;" autocomplete="off" name="De" id="De" class="form-control onlyDatePicker">
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-3 col-sm-6 col-xs-12">
+                            <div class="md-form">
+                                <label for="datepicker2">Ate:</label>
+                                <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("Ate")" type="date" style="width:80%" autocomplete="off" name="Ate" id="Ate" class="form-control onlyDatePicker">
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-1 col-sm-12 col-xs-12 pull-right">
+                            <button type="submit" id="btn-search" class="btn btn-gradient mg-right" style="width:40%">Consultar</button>
+                            <button type="reset" id="btn-limpar" class="btn btn-default" style="width:40%">Limpar</button>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <br />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border m-b-5">
+            <div class="box-body with-border">
+                <div class="text-left">
+                    <span class="text-muted">Total Solicitado: <b id="quantidade-total-solicitada">@ViewBag.QuantidadeTotalRetidos</b> | </span>
+                    <span class="text-muted"> Valor Total Solicitado: <b id="valor-total-solicitada">@ViewBag.ValorTotalNaoRetidos</b></span>
+                </div>
+                <div class="col-lg-6 col-lg-offset-3">
+                    <div id="chart-entidade"></div>
+                    <div class="col-lg-12 none" id="tabelas-primeiros-graficos">
+                        <table class="table table-bordered table-striped" id="entidades">
+                            <thead class="gradient">
+                                <tr>
+                                    <th class="alg-center">Nome do Fundo</th>
+                                    <th class="alg-center">Valor Solcitado</th>
+                                    <th class="alg-center">% Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+    var De = '@Request.Params.Get("De")';
+    var Ate = '@Request.Params.Get("Ate")';
+
+    function conveterFormatoDinhero(valor) {
+        return valor.toLocaleString('pt-BR', { currency: 'BRL' });
+    }
+
+    function conveterFormatoPercent(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'decimal', maximumFractionDigits: 2 });
+    }
+
+    $(document).ready(function () {
+
+        var labels = @Html.Raw(ViewBag.Entidades);
+
+        var valoresTooltip = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.TooltipValores));
+
+        var dados = @Html.Raw(ViewBag.Quantidades);
+
+
+        var options = {
+            chart: {
+                events: {
+                    dataPointSelection: function (event, dataPointIndex, obj) {
+
+                        var dataPointIndex = obj.dataPointIndex;
+                        var categories = obj.w.config.labels;
+
+                        //if (event.button == 0) {
+
+                            if (Array.isArray(categories) && categories.length > 0) {
+
+                                var entidade = categories[dataPointIndex];
+
+                                if (entidade != "") {
+
+                                    $.get('@Url.Action("ObterSolicitcaoEntidade", "GerencialIndicadoresEntidade")', { entidade, De, Ate }, function (resp) {
+                                        var response = JSON.parse(resp);
+                                        if (response.length < 0) {
+                                            return;
+                                        }
+                                        var tabela = $('#entidades tbody');
+                                        tabela.html('');
+
+                                        var valoresSolicitado = response.map(r => r.ValorSolicitado);
+                                        var totalValorSolicitado = valoresSolicitado.reduce((ant, atu) => ant + atu);
+
+                                        response.forEach(function (ele, ind) {
+                                            tabela.append(`
+                                                    <tr class="agencia">
+                                                        <td>${conveterFormatoDinhero(ele.Fundo)}</td>
+                                                        <td>${conveterFormatoDinhero(ele.ValorSolicitado)}</td>
+                                                        <td>${conveterFormatoPercent(ele.PorcentagemValor) /*Math.round((ele.ValorSolicitado / totalValorSolicitado) * 100 )*/}</td>
+                                                    </tr>
+                                            `);
+                                        });
+
+                                        $('#tabela-total > tbody').html('').append(`
+                                            <tr>
+                                                <td class="btn-gradient">Total</td>
+                                                <td style="border-right:1px solid #e2e2e2">${conveterFormatoDinhero(totalValorSolicitado)}</td>
+                                                <td style="border-right:1px solid #e2e2e2">${response.length}</td>
+                                            </tr>
+                                            `);
+
+                                            $('#tabelas-primeiros-graficos').removeClass('none');
+                                            document.getElementById('tabelas-primeiros-graficos').scrollIntoView(true)
+                                    });
+
+                                }
+                            }
+                        //}
+                        else {
+                            $('#tabelas-primeiros-graficos').addClass('none');
+                        }
+                    }
+                },
+                width: "700px",
+                height: "400px",
+                type: 'pie',
+            },
+            dataLabels: {
+                enabled: true,
+                dropShadow: {
+                    enabled: false
+                }
+            },
+            colors: ['rgba(106, 137, 204,1.0)',
+                'rgba(0,176,240,0.9)',
+                'rgba(112,48,160,0.9)',
+                'rgba(255,192,0,0.9)',
+                'rgba(211, 84, 0,0.9)',
+                'rgba(166,166,166, 0.9)',
+                'rgba(106, 176, 76, 1.0)',
+                'rgba(25, 42, 86,1.0)',
+                'rgba(225, 177, 44,1.0)',
+                'rgba(140, 122, 230,1.0)',
+                'rgba(111, 30, 81,1.0)',
+                'rgba(255, 184, 184,1.0)',
+                'rgba(58, 227, 116,1.0)',
+                'rgba(51, 217, 178,1.0)',
+                'rgba(203,11,80,0.9)',
+                'rgba(247, 241, 227,1.0)',
+                'rgba(179, 57, 57,1.0)',
+                'rgba(255, 82, 82,1.0)',
+                'rgba(248,74,115,0.9)',
+                'rgba(130, 204, 221,1.0)'],
+            series: dados,
+            labels: labels,
+            legend: {
+                position: 'right',
+                horizontalAlign: 'left'
+            }
+        }
+
+        var chart = new ApexCharts(document.querySelector("#chart-entidade"), options);
+
+        chart.render();
+
+
+
+        $('#form-pesquisa').submit(function (e) {
+            validarDataPesquisa(e);
+        })
+
+    });
+
+    </script>
+}
+

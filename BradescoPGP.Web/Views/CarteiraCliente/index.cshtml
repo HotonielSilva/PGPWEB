@@ -1,0 +1,394 @@
+﻿@model PagedList.IPagedList<BradescoPGP.Web.Models.CarteiraClienteViewModel>
+@using BradescoPGP.Web.Lib
+@using BradescoPGP.Common
+<div class="box box-danger m-b-5">
+    <div class="box-header">
+        <h3 class="box-title">Busca Rápida</h3>
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+
+    <form method="get" action="@Url.Action("Index","CarteiraCliente")" id="form-pesquisa-carteira-cliente">
+        <div class="box-body with-border">
+            <div class="form-inline custom-search-inputs">
+                <div class="row relative">
+
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            <label for="Especialista">Especialista</label>
+                            @Html.DropDownList("Especialista", ((List<SelectListItem>)ViewBag.Especialistas).OrderBy(o => o.Value), new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            <label for="agencia">Agencia</label>
+                            <input type="number" id="agencia" name="Agencia" value="@(ViewBag.FiltroAtual?.Agencia)" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            <label for="conta">Conta</label>
+                            <input type="number" id="conta" name="Conta" value="@(ViewBag.FiltroAtual?.Conta)" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <div class="form-group">
+                            <label for="gerente">Gerente</label>
+                            @Html.DropDownList("Gerente", ((List<SelectListItem>)ViewBag.Gerentes).OrderBy(o => o.Value), new { @class = "form-control" })
+                        </div>
+                    </div>
+
+                    @if (!User.IsInRole(NivelAcesso.Especialista.ToString()))
+                    {
+                        <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                            <div class="form-group">
+                                <label for="equipe">Equipe</label>
+                                @Html.DropDownList("equipe", (List<SelectListItem>)ViewBag.Equipes, new { @class = "form-control" })
+                            </div>
+                        </div>
+                    }
+                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                            <br />
+                            <button class="btn btn-danger">Buscar</button>
+                            <a href="@Url.Action("Index", "CarteiraCliente")" class="btn btn-default">Limpar filtros</a>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border">
+            <div class="box-header no-border">
+                <div class="pull-right"><small>Data da última importação: @ViewBag.UltimaImportacao</small></div>
+            </div>
+            <div class="box-body">
+                <div style="overflow-x: scroll">
+                    <table id="table-carteira-cliente" class=" table table-hover display">
+                        <thead>
+                            <tr>
+                                <th>Especialista</th>
+                                <th>Agencia</th>
+                                <th>Conta</th>
+                                <th>Cliente</th>
+                                <th>CPF</th>
+                                <th>Perfil Investidor</th>
+                                <th>Desenquadramento</th>
+                                <th>Mes do Vencimento</th>
+                                <th>Último Saldo</th>
+                                <th>Última Tentativa</th>
+                                <th>Último Contato</th>
+                                <th>Dias Corridos Último Contato</th>
+                                <th>Nome Gerente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var carCli in Model.OrderByDescending(o => o.SALDO_TOTAL))
+                            {
+                                <tr id="@carCli.Id" ondblclick="redirecionarHome(this)">
+                                    <td>@carCli.Especialista</td>
+                                    <td>@carCli.Agencia</td>
+                                    <td>@carCli.Conta</td>
+                                    <td>@carCli.NomeCliente</td>
+                                    <td>@carCli.CPF</td>
+                                    <td>@carCli.PerfilApi</td>
+                                    <td>@carCli.NIVEL_DESENQ_FX_RISCO</td>
+                                    <td>@carCli.MES_VCTO_API</td>
+                                    <td>@carCli.SALDO_TOTAL</td>
+                                    <td>@carCli.UltimaTentativa.ToString("dd/MM/yyyy")</td>
+                                    @if (carCli.UltimoContato.HasValue)
+                                    {
+                                        <td>@carCli.UltimoContato.Value.ToString("dd/MM/yyyy")</td>
+                                    }
+                                    else
+                                    {
+                                        <td></td>
+                                    }
+                                    <td>@carCli.DiasCorridosÚltimoContato</td>
+                                    <td>@carCli.NomeGerente</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <span>Foram encontrados @ViewBag.Count.ToString("N0")  resultados</span>
+                </div>
+                @if (Model.Any())
+                {
+                <a class="btn btn-sm btn-success" href="#" onclick="exportarExcel()"> <i class="fa fa-table"></i> Exportar Excel</a>
+                }
+
+                @{
+                    var options = new PagedList.Mvc.PagedListRenderOptions
+                    {
+                        ContainerDivClasses = new List<string> { "dataTables_paginate paging_simple_numbers pull-right" },
+                        UlElementClasses = new List<string> { "pagination" },
+                        LiElementClasses = new List<string> { "paginate_button" }
+
+                    };
+
+                    @Html.PagedListPager(Model, page => Url.Action("Index", "CarteiraCliente", new { page, ViewBag.FiltroAtual?.Agencia, ViewBag.FiltroAtual?.Conta, ViewBag.FiltroAtual?.Especialista, ViewBag.FiltroAtual?.Gerente, ViewBag.FiltroAtual?.Equipe }), options)
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        function redirecionarHome(ele) {
+            $(ele).css({ 'background-color': '#f69595'})
+            var agencia = $($(ele).children()[1]).text()
+            var conta = $($(ele).children()[2]).text()
+            window.location.href = '@Url.Action("RedirecionarHome","Home")?agencia=' + agencia + '&conta=' + conta;
+        }
+
+        function exportarExcel() {
+            var especialista = '@Request.Params.Get("Especialista")';
+            var conta = '@Request.Params.Get("Conta")';
+            var agencia = '@Request.Params.Get("Agencia")';
+            var situacao = '@Request.Params.Get("Situacao")';
+            var de = '@Request.Params.Get("De")';
+            var ate = '@Request.Params.Get("Ate")';
+            var equipe = '@Request.Params.Get("Equipe")';
+
+            var link = `@Url.Action("ExportarExcel", "CarteiraCliente")?especialista=@Html.Raw(Request.Params.Get("especialista"))&equipe=${equipe}&agencia=${agencia}&conta=${conta}&situacao=${situacao}&de=${de}&ate=${ate}`;
+            window.open(link, '_blank');
+        }
+
+        $(document).ready(() => {
+
+            core.home.efeitoSelecaoLinha('#table-carteira-cliente');
+
+            $('#table-carteira-cliente').DataTable({
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "",
+                    "infoFiltered": "",
+                    "infoEmpty": "Nehum dado disponivel",
+                    "oPaginate": {
+                        "sFirst": "Primeiro",
+                        "sLast": "Ultimo",
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior"
+                    },
+                },
+                ordering: false,
+                fixedHeader: true,
+                searching: false,
+                paging: false,
+                columns: [
+                    { data: 'Especialista' },
+                    { data: 'Agencia' },
+                    { data: 'Conta' },
+                    { data: 'Cliente' },
+                    { data: 'CPF' },
+                    { data: 'Perfil Investidor' },
+                    { data: 'Desenquadramento' },
+                    { data: 'Mes do Vencimento' },
+                    //{
+                    //    data: 'Saldo Médio M3',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    } },
+
+                    {
+                        data: 'Último Saldo',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                            }
+                            else {
+                                return parseFloat(data);
+                            }
+                        }
+                    },
+                    {
+                        data: 'Último Contato',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data;
+                            }
+                            else {
+                                return moment(data, 'DD/MM/YYYY').toDate();
+                            }
+                        }
+                    },
+                    {
+                        data: 'Última Tentativa',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data;
+                            }
+                            else {
+                                return moment(data, 'DD/MM/YYYY').toDate();
+                            }
+                        }
+                    },
+                    { data: 'Dias Corridos Último Contato' },
+                    { data: 'Nome Gerente' },
+                    //{
+                    //    data: 'Saldo Corretora Bra',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Corretora Ágora',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Saldo Previdencia',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Saldo Poupança',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Saldo Invests',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Saldo Dav 20K',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Saldo compromissadas',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Sado Isento',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Sado LF',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Sado CDB',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //},
+                    //{
+                    //    data: 'Sado Fundos',
+                    //    render: function (data, type, row) {
+                    //        if (type == 'display') {
+                    //            return parseFloat(data).toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' });
+                    //        }
+                    //        else {
+                    //            return parseFloat(data);
+                    //        }
+                    //    }
+                    //}
+                ],
+                columnDefs: [
+                    { width: '150px', targets:0 },
+                    { width: '200px', targets:3 },
+                    { width: '100px', targets:4 },
+                    { width: '140px', targets:5 },
+                    { width: '120px', targets:8 },
+                    { width: '50px', targets:11 },
+                ],
+            })
+
+            $('#form-pesquisa-carteira-cliente').submit(function (e) {
+                var elementos = $('#form-pesquisa-carteira-cliente input, #form-pesquisa-carteira-cliente select');
+                var dados = {}
+
+                $.each(elementos, function (i, v) {
+                    dados[v.name] = v.value;
+                })
+
+                if (dados.Especialista == "" && dados.Agencia == "" && dados.Conta == "" && dados.Gerente == "" && dados.Equipe == "") {
+                    e.preventDefault();
+                    core.notify.showNotify("Preencha algum campo para poder realizar uma busca filtrada.", "info", "top-center");
+                    return;
+                }
+                if (dados.Especialista == "" && dados.Agencia == "" && dados.Conta != "" && dados.Gerente == "" && dados.Equipe == "") {
+                    e.preventDefault();
+                    core.notify.showNotify("Não é possivel realizar pesquisa apenas pela conta, informe agencia e conta ou apenas agencia", "info", "top-center");
+                    return;
+                }
+
+            });
+        })
+    </script>
+}

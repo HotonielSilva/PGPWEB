@@ -1,0 +1,611 @@
+﻿@model List<BradescoPGP.Repositorio.Status>
+@{
+    var interator = 0;
+    var statusInalteraveis = new List<string> { "Tratado", "Tratando", "Não Tratado" };
+    var subStatusInalteraveis = new List<string>{ "Retido", "Não Retido" };
+}
+<div class="box no-border m-b-5">
+    <div class="box-body with-border">
+        <div class="row">
+            <div class="col-lg-1">
+                <button type="button" class="btn btn-gradient" style="align-self:flex-start" id="btnStatus" data-toggle="modal" data-target="#modal-incluirStatus">Incluir Status</button>
+            </div>
+            <div class="col-lg-10">
+                <h3 class="text-center">Status/SubStatus</h3>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border">
+            <div class="box-doby">
+                <div class="panel-group" id="accordion">
+                    @foreach (var status in Model)
+                    {
+                        interator++;
+
+                        var disbled = statusInalteraveis.Contains(status.Descricao) ? "disabled" : string.Empty;
+                        <div class="panel">
+                            <div class="panel-heading">
+                                <table class="table" style="margin-bottom:0">
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:0; vertical-align:middle; width:80%;" class="text-left no-border">
+                                                <a href="#collapse-@interator" data-toggle="collapse" data-parent="#accordion">
+                                                    <h3 class="panel-title">@status.Descricao</h3>
+                                                </a>
+                                            </td>
+                                            <td class="no-border">
+                                                <div class="pull-right mg-bottom">
+                                                    <button data-id="@status.Id" data-descricao="@status.Descricao" type="button" class="btn btn-success btn-sm m-r-10 incluir-subStatus">
+                                                        <i class="fa fa-plus-circle icone-novo"></i>
+                                                    </button>
+                                                    <button data-id="@status.Id" data-descricao="@status.Descricao" type="button" @disbled class="btn btn-primary btn-sm m-r-10 editar-status">
+                                                        <i class="fa fa-edit icone-editar"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="oculto">
+                                            <td colspan="2">
+                                                <form action="@Url.Action("Editar")" class="form-inline">
+                                                    <input type="hidden" name="id" value="@status.Id" />
+                                                    <label>Status</label>
+                                                    <input type="text" class="form-control" value="@status.Descricao" style="width:80%" name="descricao" />
+                                                    <button type="submit" class="btn btn-warning">Confirmar</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="panel-collapse collapse" id="collapse-@interator">
+                                <table class="table table-hover">
+                                    <tbody>
+                                        @foreach (var subStatus in status.SubStatus.Where(s => s.Descricao != null))
+                                        {
+                                            var subStatusDisabled = subStatusInalteraveis.Contains(subStatus.Descricao) ? "disabled" : string.Empty;
+                                            <tr>
+                                                <td style="width: 76.7%;" class="table-txt-left">@subStatus.Descricao</td>
+                                                <td>
+                                                    <div style="display:flex; justify-content:center">
+                                                        <div class="dropdown-toggle">
+                                                            <button data-substatusid="@subStatus.Id" @subStatusDisabled type="button" id="btn-editar1" class="btn btn-primary btn-sm m-r-10 editar-subStatus"
+                                                                    @*data-toggle="tooltip" data-placement="top" title="Editar substatus"*@>
+                                                                <i class="fa fa-edit icone-editar"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@*Modal editar subStatus*@
+<div class="modal fade" id="modal-editar-subStatus" tabindex="-1" role="dialog" aria-labelledby="btnEditar" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("EditarSubStatus")" id="form-editar-subStatus">
+                <div class="modal-header">
+                    <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                       class="modal-title" id="exampleModalLabel">
+                        Editar SubStatus
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idSubStatus" name="idSubstatus" value="" />
+
+                    <div class="col-lg-6">
+                        <label for="Status">SubStatus Atual</label>
+                        <input type="text" id="descricao-subStatus-atual" disabled class="form-control">
+                    </div>
+                    <div class="col-lg-6">
+                        <label for="subStatus">SubStatus</label>
+                        <input type="text" required id="descricao-subStatus-novo" name="descricao" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" style="margin-top:20px" class="btn btn-gradient"><i class="fa fa-send"></i> Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*Modal Editar Status*@
+<div class="modal fade" id="modal-editar-Status" tabindex="-1" role="dialog" aria-labelledby="btnEditar" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("EditarStatus")" id="form-novo-Status">
+                <div class="modal-header">
+                    <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                       class="modal-title" id="exampleModalLabel">
+                        Editar Status
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idStatusEditar" name="idStatus" value="" />
+
+                    <div class="col-lg-6">
+                        <label for="Status">Status Atual</label>
+                        <input type="text" id="descricao-Status-atual" disabled class="form-control">
+                    </div>
+                    <div class="col-lg-6">
+                        <label for="subStatus">Novo Status</label>
+                        <input type="text" required id="descricao-Status-novo" name="Status" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" style="margin-top:20px" class="btn btn-gradient"><i class="fa fa-send"></i> Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*Modal Novo Sub Status*@
+<div class="modal fade" id="modal-subStatus" tabindex="-1" role="dialog" aria-labelledby="btnEditar" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("NovoSubStatus")" id="form-novo-subStatus">
+                <div class="modal-header">
+                    <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                       class="modal-title" id="exampleModalLabel">
+                        Novo Sub Status
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idStatus" name="idStatus" value="" />
+                    <div class="col-lg-6">
+                        <label for="Status">Status</label>
+                        <input type="text" id="descricao-Status" disabled class="form-control">
+                    </div>
+                    <div class="col-lg-6">
+                        <label for="subStatus">SubStatus</label>
+                        <input type="text" required id="subStatus" name="descricao" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    <button type="submit" style="margin-top:20px" class="btn btn-gradient"><i class="fa fa-send"></i> Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*Modal Confirmacao Exclusao*@
+<div class="modal fade" id="modal-confirmar-exclusao" tabindex="-1" role="dialog" aria-labelledby="btnEditar" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("Excluir")" id="form-exclusao">
+                <div class="modal-header">
+                    <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                       class="modal-title" id="exampleModalLabel">
+                        Confirmar
+                    </p>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="idStatusExclusao" name="idStatus" value="" />
+                    <input type="hidden" id="idSubStatusExclusao" name="idSubStatus" value="" />
+                    <h4></h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    <button type="submit" style="margin-top:20px" class="btn btn-gradient"><i class="fa fa-send"></i>Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@*Modal Status*@
+<div class="modal fade" id="modal-incluirStatus" tabindex="-1" role="dialog" aria-labelledby="btnIncluir" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("NovoStatus")">
+                <div class="modal-header">
+                    <h4 class="modal-title d-inline" id="exampleModalLabel">
+                        Novo Status
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-10 col-lg-offset-1">
+                            <label for="Status">Status</label>
+                            <input type="text" id="novo-status" name="descricao" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                    <button type="submit" class="btn btn-gradient"><i class="fa fa-send"></i> Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+
+            var idStatus = null;
+            var idSubStatus = null;
+
+            $(".oculto").hide();
+
+            $('.editar-status').on('click', function () {
+                $(this).closest('tr').next().toggle();
+            });
+
+            $("#title").text("Configurações");
+            $("#subtitle").text("Configurações > Parâmetros > Status/SubStatus");
+
+            //incluir SubStatus
+            $('.incluir-subStatus').on('click', function () {
+                idStatus = $(this).data('id');
+                var descricaoStatus = $(this).closest('tr').children()[0].children[0].children[0].innerHTML;
+                $('#descricao-Status').val(descricaoStatus);
+                $('#idStatus').val(idStatus);
+                $('#modal-subStatus').modal();
+            });
+
+            //Editar Status
+            $('.editar-Status').on('click', function () {
+                idStatus = $(this).data('id');
+                var descricaoStatus = $(this).closest('tr').children()[0].children[0].children[0].innerHTML;
+                $('#idStatusEditar').val(idStatus);
+                $('#descricao-Status-atual').val(descricaoStatus);
+                $('#modal-editar-Status').modal();
+            });
+
+            //Ecluir Status
+            $('.excluir-Status').on('click', function () {
+                idStatus = $(this).data('id');
+                var descricaoStatus = $(this).closest('tr').children()[0].children[0].children[0].innerHTML;
+                $('#modal-confirmar-exclusao h4').html('Tem certeza que deseja excluir o Status <b>' + descricaoStatus + '</b>?');
+                $('#modal-confirmar-exclusao').find('#idStatusExclusao').val(idStatus);
+                $('#modal-confirmar-exclusao').modal();
+            });
+
+            //Excluir SubStatus
+            $('.excluir-subStatus').on('click', function () {
+                idStatus = $(this).data('substatusid');
+                var descricaoStatus = $(this).closest('tr').children()[0].innerHTML;
+
+                $('#modal-confirmar-exclusao h4').html('Tem certeza que deseja excluir o subStatus <b>' + descricaoStatus + '</b>?');
+
+                $('#modal-confirmar-exclusao').find('#idSubStatusExclusao').val(idStatus);
+                $('#modal-confirmar-exclusao').find('#form-exclusao').attr('Action', '@Url.Action("ExcluirSubStatus")');
+
+                $('#modal-confirmar-exclusao').modal();
+            });
+
+            //Editar subStatus
+            $('.editar-subStatus').on('click', function () {
+                idSubStatus = $(this).data('substatusid');
+                var descricaoSubStatus = $(this).closest('tr').children()[0].innerText;
+                $('#descricao-subStatus-atual').val(descricaoSubStatus);
+                $('#idSubStatus').val(idSubStatus);
+
+                $('#modal-editar-subStatus').modal();
+            });
+
+
+        });
+
+    </script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+@*<div class="panel">
+        <div class="panel-heading">
+            <a href="#collapseThree" data-toggle="collapse" data-parent="#accordion"><h3 class="panel-title d-inline">Relacionamento com a Seguradora</h3></a>
+            <div class="pull-right mg-bottom">
+                <button type="button" class="button btn-success m-r-10" data-toggle="modal" data-target="#modal-novo-1">
+                    <i class=" fa fa-plus-circle icone-novo"></i>
+                </button>
+                <button type="button" id="btn-editar1" class="button btn-primary m-r-10" data-toggle="modal" data-target="#modal-editar-1">
+                    <i class="fa fa-edit icone-editar"></i>
+                </button>
+                <button type="button" class="button btn-danger m-r-10" data-toggle="modal" id="btn-deletar1" data-target="#modal-deletar-1">
+                    <i class="fa fa-trash icone-deletar"></i>
+                </button>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="panel-collapse collapse" id="collapseThree">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="table-txt-left">Centralização de Recursos em Outra Seguradora</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar8" class="button btn-primary m-r-10" data-toggle="modal" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-8">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deletar-8" tabindex="-1" role="dialog" aria-labelledby="btnDeletar" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Excluir
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>Tem Certeza que Deseja Excluir Este Sub Status?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" class="btn btn-danger">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-txt-left">Falta de Atendimento do Corretor - Demais Ramos</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar9" class="button btn-primary m-r-10" data-toggle="modal" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-9">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deletar-9" tabindex="-1" role="dialog" aria-labelledby="btnDeletar" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Excluir
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>Tem Certeza que Deseja Excluir Este Sub Status?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" class="btn btn-danger">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-novo-9" tabindex="-1" role="dialog" aria-labelledby="btnNovo" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Novo Status/SubStatus
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="col-lg-6">
+                                                <label for="Status">Status</label>
+                                                <input type="text" id="status" class="form-control">
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label for="subStatus">SubStatus</label>
+                                                <input type="text" id="subStatus" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" style="margin-top:20px" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" style="margin-top:20px" class="btn btn-danger">Incluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <a href="#collapseFour" data-toggle="collapse" data-parent="#accordion"><h3 class="panel-title d-inline">Problemas com a Seguradora</h3></a>
+            <div class="pull-right mg-bottom">
+                <button type="button" class="button btn-success m-r-10" data-toggle="modal" data-target="#modal-novo-1">
+                    <i class=" fa fa-plus-circle icone-novo"></i>
+                </button>
+                <button type="button" id="btn-editar1" class="button btn-primary m-r-10" data-toggle="modal" data-target="#modal-editar-1">
+                    <i class="fa fa-edit icone-editar"></i>
+                </button>
+                <button type="button" class="button btn-danger m-r-10" data-toggle="modal" id="btn-deletar1" data-target="#modal-deletar-1">
+                    <i class="fa fa-trash icone-deletar"></i>
+                </button>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="panel-collapse collapse" id="collapseFour">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="table-txt-left">Erro em Alguma Operação do Grupo Bradesco Seguros</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar10" class="button btn-primary m-r-10" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-10">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deletar-10" tabindex="-1" role="dialog" aria-labelledby="btnDeletar" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Excluir
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>Tem Certeza que Deseja Excluir Este Sub Status?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" class="btn btn-danger">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-txt-left">Erro em Alguma Operação da Bradesco Vida e Previdência</td>
+                        <td>2000</td>
+                        <td>R$ 1.3546,32</td>
+                        <td>
+                            <div style="display:flex; justify-content:center">
+                                <div class="dropdown-toggle">
+                                    <button type="button" id="btn-editar11" class="button btn-primary m-r-10" data-toggle="modal" data-target="#editar">
+                                        <i class="fa fa-edit icone-editar"></i>
+                                    </button>
+                                </div>
+                                <div style="display:flex; justify-content:center">
+                                    <button type="button" class="button btn-danger m-r-10" data-toggle="modal" data-target="#modal-deletar-11">
+                                        <i class="fa fa-trash icone-deletar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deletar-11" tabindex="-1" role="dialog" aria-labelledby="btnDeletar" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <p style="font-family:Arial, Helvetica, sans-serif; font-size:25px"
+                                               class="modal-title" id="exampleModalLabel">
+                                                Excluir
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Excluir">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </p>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h4>Tem Certeza que Deseja Excluir Este Sub Status?</h4>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                            <button type="button" class="btn btn-danger">Excluir</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <h3 class="panel-title d-inline"><a href="#"> Cliente Não Quer Ouvir a Proposta</a></h3>
+            <div class="pull-right">
+                <button type="button" class="button btn-success m-r-10" data-toggle="modal" data-target="#modal-novo-1">
+                    <i class=" fa fa-plus-circle icone-novo"></i>
+                </button>
+                <button type="button" id="btn-editar1" class="button btn-primary m-r-10" data-toggle="modal" data-target="#modal-editar-1">
+                    <i class="fa fa-edit icone-editar"></i>
+                </button>
+                <button type="button" class="button btn-danger m-r-10" data-toggle="modal" id="btn-deletar1" data-target="#modal-deletar-1">
+                    <i class="fa fa-trash icone-deletar"></i>
+                </button>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+    </div>*@

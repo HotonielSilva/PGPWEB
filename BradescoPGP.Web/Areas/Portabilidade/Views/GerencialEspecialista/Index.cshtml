@@ -1,0 +1,961 @@
+﻿@model BradescoPGP.Web.Areas.Portabilidade.Models.EspecialistaViewModel
+@{
+    var dataAtual = DateTime.Now;
+    var minDate = new DateTime(dataAtual.Year, dataAtual.Month, 1);
+    var maxDate = dataAtual.Date;
+
+    var perfil = ((System.Security.Claims.ClaimsIdentity)User.Identity).FindFirst("cargo").Value;
+}   
+
+<div class="box no-border m-b-10">
+    <div class="box-header">
+        <div class="d-flex" style="flex-direction:column; align-items:center">
+            <h3>Visão Especialista</h3>
+            <h5>
+                @if (DateTime.TryParse(Request.Params.Get("De"), out var de) && DateTime.TryParse(Request.Params.Get("Ate"), out var ate))
+                {
+                    @de.ToShortDateString() <span>Até</span> @ate.ToShortDateString()
+                }
+                else
+                {
+                    @minDate.ToShortDateString() <span>Até</span> @maxDate.ToShortDateString()
+                }
+            </h5>
+        </div>
+        <form method="get" id="form-pesquisa" action="@Url.Action("Index","GerencialEspecialista")">
+            <div class="row">
+                <div class="">
+                    <div class="col-lg-3 col-lg-offset-2">
+                        <div class="form-group">
+                            <label for="especialista">Especialista</label>
+                            @Html.DropDownList("especialista", ViewBag.Especialistas as List<SelectListItem>, new { @class = "form-control" , id="EspecialistaFiltro"})
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-lg-offset-1">
+                        <div class="form-group">
+                            <label for="datepicker">De:</label>
+                            <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("De")" type="date" style="width:80%" autocomplete="off" name="De" id="De" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="md-form">
+                            <label for="datepicker2">Ate:</label>
+                            <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("Ate")" type="date" style="width:80%" autocomplete="off" name="Ate" id="Ate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div style="margin-top: 25px;">
+                            <button type="submit" id="btn-search" class="btn btn-gradient" style="">Consultar</button>
+                            <button type="reset" id="btn-limpar" class="btn btn-default">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="row align-items-center">
+    <div id="container-chart1">
+        <div class="col-lg-6" id="imprimir-solicitacao">
+            <div class="box h-100">
+                <div class="box-header text-center">
+                    <h3>Status das Solicitações</h3>
+                </div>
+                <hr />
+                <div class="box-body">
+                    <div class="d-flex align-items-center" id="chart-solicitacao"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6" id="imprimir-operacoes">
+            <div class="box h-100">
+                <div class="box-header text-center">
+                    <h3>Operações a Vencer</h3>
+                </div>
+                <hr />
+                <div class="box-body pl-130" style="height: 45.7rem;">
+                    <div id="chart-operacoes">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="tabelas-primeiros-graficos" class="none">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box no-border">
+                <div class="box-header">
+                    <h3 class="text-center"></h3>
+                    <button type="button" class="close" id="fechar-resultados" style="position:absolute; top:10px; right:15px;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="box-body">
+                    <table class="table table-hover table-striped" id="tabela-status">
+                        <thead style="vertical-align:middle">
+                            <tr>
+                                <th>Especialista</th>
+                                <th>Nome do Cliente</th>
+                                <th>Agência</th>
+                                <th>Data da Solicitação</th>
+                                <th>Número do Processo</th>
+                                <th>Número da Proposta</th>
+                                <th>Entidade</th>
+                                <th>Valor Solicitado</th>
+                                <th>Valor Retido</th>
+                                <th>Status</th>
+                                <th>Substatus</th>
+                                <th>Detalhe</th>
+                                <th style="visibility:hidden">Id</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="col-lg-1">
+                        <a href="#" target="_blank" class="btn btn-success m-r-10" data-target="#download" id="exportar-excel-primeiros">
+                            <i class="fa fa-download icone-baixar"></i>
+                            Download
+                        </a>
+                    </div>
+                    <div class="col-lg-5 col-lg-offset-2">
+                        <table id="tabela-total-especialista" style="max-width:100%" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="btn-gradient">Quantidade</th>
+                                    <th class="btn-gradient">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="btn-gradient"><b>Retidos</b></td>
+                                    <td id="qtd-retido-primeira-tabela" class="text-center"></td>
+                                    <td id="valor-retido-primeira-tabela" class="text-center"></td>
+                                </tr>
+                                <tr>
+                                    <td class="btn-gradient"><b>Não Retidos</b></td>
+                                    <td id="qtd-nao-retido-primeira-tabela" class="text-center"></td>
+                                    <td id="valor-nao-retido-primeira-tabela" class="text-center"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row align-items-center">
+    <div id="container-chart2">
+        <div class="col-lg-6" id="imprimir-motivo-submotivo">
+            <div class="box h-100">
+                <div class="box-header text-center">
+                    <h3 id="texto-motivo">Portabilidade por Motivos</h3>
+                </div>
+                <hr />
+                <div class="box-body">
+                    <div class="d-flex align-items-center" id="chart-MotivoSubmotivo"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6" id="imprimir-equipe">
+            <div class="box h-100">
+                <div class="box-header text-center">
+                    <h3 id="texto-equipe">Portabilidades por Equipe</h3>
+                </div>
+                <hr />
+                <div class="box-body">
+                    <div id="chart-equipe"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="tabelas-segundos-graficos" class="none">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box no-border">
+                <div class="box-header">
+                    <h3 class="text-center"></h3>
+                    <button type="button" class="close" id="fechar-resultados" style="position:absolute; top:10px; right:15px;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="box-body">
+                    <table class="table table-hover table-striped" id="tabela-status2">
+                        <thead style="vertical-align:middle">
+                            <tr>
+                                <th>Especialista</th>
+                                <th>Nome do Cliente</th>
+                                <th>Agência</th>
+                                <th>Data da Solicitação</th>
+                                <th>Número do Processo</th>
+                                <th>Número da Proposta</th>
+                                <th>Entidade</th>
+                                <th>Valor Solicitado</th>
+                                <th>Valor Retido</th>
+                                <th>Status</th>
+                                <th>Substatus</th>
+                                <th>Detalhe</th>
+                                <th style="visibility:hidden">Id</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="col-lg-1">
+                        <a href="#" target="_blank" class="btn btn-success m-r-10" id="exportar-excel-segudos">
+                            <i class="fa fa-download icone-baixar"></i>
+                            Download
+                        </a>
+                    </div>
+                    <div class="col-lg-5 col-lg-offset-2">
+                        <table id="tabela-total-especialista-2" style="max-width:100%" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="btn-gradient">Quantidade</th>
+                                    <th class="btn-gradient">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="btn-gradient"><b>Retidos</b></td>
+                                    <td id="qtd-retido-segunda-tabela" class="text-center"></td>
+                                    <td id="valor-retido-segunda-tabela" class="text-center"></td>
+                                </tr>
+                                <tr>
+                                    <td class="btn-gradient"><b>Não Retidos</b></td>
+                                    <td id="qtd-nao-retido-segunda-tabela" class="text-center"></td>
+                                    <td id="valor-nao-retido-segunda-tabela" class="text-center"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script>
+
+        $(document).ready(function () {
+            var De = '@Request.Params.Get("De")';
+            var Ate = '@Request.Params.Get("Ate")';
+            var especialista = '@Request.Params.Get("especialista")';
+
+            $(document).on('click', '#fechar-resultados', function () {
+                $('#tabelas-primeiros-graficos').addClass('none');
+                $('#tabelas-segundos-graficos').addClass('none');
+            });
+
+            var datatable = $('#tabela-status').DataTable({
+                paging: true,
+                ordering: true,
+                info: true,
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Foram encontrados _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+                    search: "Pesquisar",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                },
+                fixedHeader: false,
+                scrollX: false,
+                columns: [
+                    { data: 'ConsultorPGP', render: (data) => data != null ? data.toUpperCase() : data},
+                    { data: 'NomeParticipante'},
+                    { data: 'Agencia' },
+                    {
+                        data: 'DataSolicitacao',
+                        type: 'date',
+                        render: function (data, type, row) {
+                            return type == 'display' ? data : moment(data, 'DD/MM/YYYY');
+                        }
+                    },
+                    { data: 'NumeroProcesso' },
+                    { data: 'NumeroProposta' },
+                    { data: 'Entidade' },
+                    { data: 'ValorSolicitado' },
+                    {
+                        data: 'ValorRetido',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data != null ? data.toLocaleString() : data;
+                            }
+                            else {
+                                return data;
+                            }
+                        }
+                    },
+                    { data: 'Status' },
+                    { data: 'SubStatus' },
+                    {
+                        data: 'Detalhe',
+                        orderable: false,
+                    }, {
+
+                        data: 'Id',
+                        render: function (data, type, row) {
+                            return `<span id="${data}" style = "visibility:hidden">${data}</span>`
+                        }
+                    }
+                ],
+            });
+            var datatable2 = $('#tabela-status2').DataTable({
+                paging: true,
+                ordering: true,
+                info: true,
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Foram encontrados _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+                    search: "Pesquisar",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                },
+                fixedHeader: false,
+                scrollX: false,
+                columns: [
+                    { data: 'ConsultorPGP'},
+                    { data: 'NomeParticipante' },
+                    { data: 'Agencia' },
+                    {
+                        data: 'DataSolicitacao',
+                        type: 'date',
+                        render: function (data, type, row) {
+                            return type == 'display' ? data : moment(data, 'DD/MM/YYYY');
+                        }
+                    },
+                    { data: 'NumeroProcesso' },
+                    { data: 'NumeroProposta' },
+                    { data: 'Entidade' },
+                    { data: 'ValorSolicitado' },
+                    {
+                        data: 'ValorRetido',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data != null ? data.toLocaleString() : data;
+                            }
+                            else {
+                                return data;
+                            }
+                        }
+                    },
+                    // { data: 'Retido Por' },
+                    { data: 'Status' },
+                    { data: 'SubStatus' },
+                    {
+                        data: 'Detalhe',
+                        orderable: false,
+                    }, {
+
+                        data: 'Id',
+                        render: function (data, type, row) {
+                            return `<span id="${data}" style = "visibility:hidden">${data}</span>`
+                        }
+                    }
+                ],
+            });
+            //=========================================GRAFICO STATUS DAS SOLICITACOES==============================================
+            var datas = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.StatusSolicitacao.Data));
+            var labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.StatusSolicitacao.Labels));
+
+            var options = {
+                chart: {
+                   events: {
+                        dataPointSelection: async function (obj, dataPointIndex, event) {
+
+                            var dataPointIndex = event.dataPointIndex;
+                            var categories = event.w.config.xaxis.categories;
+
+                            if (obj.button == 0) {
+
+                                if (Array.isArray(categories) && categories.length > 0) {
+
+                                    var status = categories[dataPointIndex];
+
+                                    if (status != "") {
+
+                                        $('#loading').toggleClass('none');
+
+                                        let url = `@Url.Action("TabelaStatus")?status=${status}&De=${De}&Ate=${Ate}&especialista=${especialista}`
+
+                                        await datatable.ajax.url(url).load(function (resp) {
+                                            if (resp.data.length > 0) {
+                                                $('#qtd-retido-primeira-tabela').text(resp.resumo.quantidadeRetido);
+                                                $('#valor-retido-primeira-tabela').text(resp.resumo.valorRetido);
+                                                $('#qtd-nao-retido-primeira-tabela').text(resp.resumo.quantidadeNaoRetido);
+                                                $('#valor-nao-retido-primeira-tabela').text(resp.resumo.valorNaoRetido);
+                                            }
+                                        });
+
+                                        $('#tabelas-primeiros-graficos').removeClass('none');
+
+                                        document.getElementById('tabelas-primeiros-graficos').scrollIntoView(true);
+
+                                        var titulografico = $('#chart-solicitacao').parent().prev().prev().text();
+
+                                        $('#tabelas-primeiros-graficos h3').text(`${titulografico} - ${status}`);
+
+                                        $('#loading').toggleClass('none');
+
+                                       var tipoPesquisa = '@BradescoPGP.Web.Areas.Portabilidade.Enums.TipoExportacaoExcelGrafico.Status.ToString()';
+
+                                        var urlExportacao = `@Url.Action("ExpertarExcel")?tipoPesquisa=${tipoPesquisa}&status=${status}&De=${De}&Ate=${Ate}&especialista=${especialista}`;
+
+                                        $('#exportar-excel-primeiros').attr('href', urlExportacao);
+                                    }
+                                }
+                            }
+                            else {
+                                $('#tabelas-primeiros-graficos').addClass('none');
+                            }
+                        }
+                    },
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            customIcons: [{
+                                icon: '<i id="print-solicitacoes" class="fa fa-print" style="font-size: 20px; margin-left:15px; height:20px"></i>',
+                                index: 1,
+                                title: 'Imprimir',
+                                class: 'custom-icon',
+                                click: function (chart, options, e) {
+
+                                    var clone = $('#imprimir-solicitacao').clone();
+
+                                    clone.find('.apexcharts-toolbar, .apexcharts-tooltip').each(function (i, v) {
+                                        $(v).remove();
+                                    });
+
+                                    var conteudo = clone.html();
+                                    tela_impressao = window.open();
+
+                                    tela_impressao.document.write(conteudo);
+                                    tela_impressao.window.print();
+                                    tela_impressao.window.close();
+                                }
+                            }]
+                        },
+                        autoSelected: 'zoom'
+                    },
+                    width: '100%',
+                    type: 'bar',
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opt) {
+                        return `${(val / datas[0] * 100).toFixed(2)} %`;
+                    },
+                },
+                series: [
+                    {
+                        name: 'Quantidade',
+                        data: datas,
+                    }
+
+                ],
+                colors: ['#cb0a50', '#00afef', '#f74972', '#7030a0', '#ffc000'],
+                plotOptions: {
+                    bar: {
+                        distributed: true,
+                    },
+                },
+                xaxis: {
+                    categories: labels,
+                },
+                legend: {
+                    show: false,
+                }
+            }
+
+            var chart1 = new ApexCharts(document.querySelector("#chart-solicitacao"), options);
+            chart1.render();
+                //===============================================================================
+
+            var options = {
+                chart: {
+                    events: {
+                        dataPointSelection: async function (obj, dataPointIndex, event) {
+
+                            var dataPointIndex = event.dataPointIndex;
+                            var categories = event.w.config.labels;
+
+                            if (obj.button == 0) {
+
+                                if (Array.isArray(categories) && categories.length > 0) {
+
+                                    var periodo = categories[dataPointIndex];
+
+                                    periodo = periodo.replace(/\D/g, '');
+
+                                    if (periodo != "") {
+
+                                        $('#loading').toggleClass('none');
+
+                                        var url = `@Url.Action("TabelaAVencer")?periodo=${periodo}&De=${De}&Ate=${Ate}&especialista=${especialista}`;
+
+                                        await datatable.ajax.url(url).load(function (resp) {
+                                            if (resp.data.length > 0) {
+                                                $('#qtd-retido-primeira-tabela').text(resp.resumo.quantidadeRetido);
+                                                $('#valor-retido-primeira-tabela').text(resp.resumo.valorRetido);
+                                                $('#qtd-nao-retido-primeira-tabela').text(resp.resumo.quantidadeNaoRetido);
+                                                $('#valor-nao-retido-primeira-tabela').text(resp.resumo.valorNaoRetido);
+                                            }
+                                        });
+
+                                        $('#tabelas-primeiros-graficos').removeClass('none');
+
+                                        var titulografico = $('#chart-operacoes').parent().prev().prev().text();
+
+                                        $('#tabelas-primeiros-graficos h3').text(`${titulografico} - ${periodo} dia(s)`);
+
+                                        document.getElementById('tabelas-primeiros-graficos').scrollIntoView(true);
+
+                                        var tipoPesquisa = '@BradescoPGP.Web.Areas.Portabilidade.Enums.TipoExportacaoExcelGrafico.OperacaoAVencer.ToString()';
+
+                                        var urlExportacao = `@Url.Action("ExpertarExcel")?tipoPesquisa=${tipoPesquisa}&periodo=${periodo}&especialista=${especialista}&De=${De}&Ate=${Ate}`;
+
+                                        $('#exportar-excel-segundos').attr('href', urlExportacao);
+
+                                        $('#loading').toggleClass('none');
+                                    }
+                                }
+                            }
+                            else {
+                                $('#tabelas-primeiros-graficos').addClass('none');
+                            }
+                        }
+                    },
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            customIcons: [{
+                                icon: '<i id="print-operacoes" class="fa fa-print" style="font-size: 20px; margin-left:15px; height:20px"></i>',
+                                title: 'Imprimir',
+                                class: 'custom-icon',
+                                click: function (chart, options, e) {
+
+                                    var clone = $('#imprimir-operacoes').clone();
+
+                                    clone.find('.apexcharts-tooltip, .apexcharts-toolbar ').each(function (i, v) {
+                                        $(v).remove();
+                                    });
+
+                                    var conteudo = clone.html();
+                                    tela_impressao = window.open();
+                                    tela_impressao.document.write(conteudo);
+                                    tela_impressao.window.print();
+                                    tela_impressao.window.close();
+                                }
+                            }]
+                        },
+                        autoSelected: 'zoom'
+                    },
+                    type: 'pie',
+                    width: "430px",
+
+                },
+                dataLabels: {
+                    enabled: true,
+                    dropShadow: {
+                        enabled: false,
+                        top: 1,
+                        left: 1,
+                        blur: 1,
+                        color: '#000',
+                        opacity: 0.45
+                    }
+                },
+                series: [@Model.OperacoesVencer.UmDia, @Model.OperacoesVencer.DoisDias, @Model.OperacoesVencer.TresDias],
+                labels: ['1 Dia', '2 Dias','3 Dias'],
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'left'
+                }
+            }
+
+            var chart = new ApexCharts(document.querySelector("#chart-operacoes"), options);
+
+            chart.render();
+
+            //============================================================================================
+             var valoresRetidos = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MotivosRetencao.Retido.Data));
+            var valorNaoRetido = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MotivosRetencao.NaoRetido.Data));
+
+            var total = {
+                Retido: valoresRetidos.length > 0 ? valoresRetidos.reduce((s, r) => s + r) : 0,
+                NaoRetido: valorNaoRetido.length > 0 ? valorNaoRetido.reduce((s, r) => s + r) : 0
+            }
+
+             options = {
+                series: [{
+                    name: 'Retido',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MotivosRetencao.Retido.Data)),
+                }, {
+                    name: 'Não Retidos',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MotivosRetencao.NaoRetido.Data)),
+                }],
+                chart: {
+                    events: {
+                        dataPointSelection: async function (obj, dataPointIndex, event) {
+
+                            var dataPointIndex = event.dataPointIndex;
+                            var categories = event.w.config.xaxis.categories;
+
+                            if (obj.button == 0) {
+                                if (Array.isArray(categories) && categories.length > 0) {
+
+                                    var serie = event.w.config.series[event.seriesIndex].name;
+
+                                    var motivo = categories[dataPointIndex];
+
+                                    if (motivo != "") {
+
+                                        $('#loading').toggleClass('none');
+
+                                        var url = `@Url.Action("TabelaMotivo")?motivo=${motivo}&De=${De}&Ate=${Ate}&serie=${serie}&especialista=${especialista}`;
+
+                                        await datatable2.ajax.url(url).load(function (resp) {
+                                            if (resp.data.length > 0) {
+                                                $('#qtd-retido-segunda-tabela').text(resp.resumo.quantidadeRetido);
+                                                $('#valor-retido-segunda-tabela').text(resp.resumo.valorRetido);
+                                                $('#qtd-nao-retido-segunda-tabela').text(resp.resumo.quantidadeNaoRetido);
+                                                $('#valor-nao-retido-segunda-tabela').text(resp.resumo.valorNaoRetido);
+                                            }
+                                        });
+
+                                        $('#tabelas-segundos-graficos').removeClass('none');
+
+                                        document.getElementById('tabelas-segundos-graficos').scrollIntoView(true);
+
+                                        var titulografico = $('#texto-motivo').text();
+
+                                        var subtitulo = $('#chart-motivoSubmotivo > h5').text();
+
+                                        $('#tabelas-segundos-graficos h3').text(`${titulografico}: ${subtitulo} - ${motivo}`);
+
+                                        var tipoPesquisa = '@BradescoPGP.Web.Areas.Portabilidade.Enums.TipoExportacaoExcelGrafico.Motivo.ToString()';
+
+                                        var urlExportacao = `@Url.Action("ExpertarExcel")?tipoPesquisa=${tipoPesquisa}&especialista=${especialista}&motivo=${motivo}&De=${De}&Ate=${Ate}&serie=${serie}`;
+
+                                        $('#exportar-excel-segudos').attr('href', urlExportacao);
+
+                                        $('#loading').toggleClass('none');
+                                    }
+                                }
+                            }
+                            else {
+                                $('#tabelas-segundos-graficos').addClass('none');
+                            }
+                        }
+                    },
+                    type: 'bar',
+                    height: 350,
+                    stacked: true,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            customIcons: [{
+                                icon: '<i id="print-motivo" class="fa fa-print" style="font-size: 20px; margin-left:15px; height:20px"></i>',
+                                index: 1,
+                                title: 'Imprimir',
+                                class: 'custom-icon',
+                                click: function (chart, options, e) {
+
+                                    var clone = $('#imprimir-motivo-submotivo').clone();
+
+                                    clone.find('.apexcharts-tooltip, .apexcharts-toolbar').each(function (i, v) {
+                                        $(v).remove();
+                                    });
+
+                                    var conteudo = clone.html();
+
+                                    tela_impressao = window.open();
+                                    tela_impressao.document.write(conteudo);
+                                    tela_impressao.window.print();
+                                    tela_impressao.window.close();
+                                }
+                            }]
+                        },
+                        autoSelected: 'zoom'
+                    },
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                    },
+                },
+                 dataLabels: {
+                     enabled: true,
+                     formatter: function (value, opts) {
+                         let porcentage = 0;
+
+                         var serie = opts.w.globals.seriesNames[opts.seriesIndex];
+
+                         if (serie == "Retido") {
+                             porcentage = value / total.Retido * 100;
+                         }
+                         else {
+                             porcentage = value / total.NaoRetido * 100;
+                         }
+                         return porcentage.toFixed(2) + "%";
+                     }
+                 },
+                 tooltip: {
+                     enable: true,
+                     y: {
+                         formatter: function (value, opts) {
+                             let porcentage = 0;
+
+                             var serie = opts.w.globals.seriesNames[opts.seriesIndex];
+
+                             if (serie == "Retido") {
+                                 porcentage = value / total.Retido * 100;
+                             }
+                             else {
+                                 porcentage = value / total.NaoRetido * 100;
+                             }
+                             return `Valor: ${value.toLocaleString()} | Porcentagem: ${porcentage.toFixed(2)}%`;
+                         }
+                     }
+                 },
+                stroke: {
+                    width: 1,
+                    colors: ['#fff']
+                },
+
+                xaxis: {
+                   categories:@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MotivosRetencao.Labels)),
+                },
+                yaxis: {
+                    title: {
+                        text: undefined
+                    },
+                },
+                fill: {
+                    opacity: 1
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'left',
+                    offsetX: 40
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart-MotivoSubmotivo"), options);
+            chart.render();
+
+            //=============================================================
+            var valoresRetidosEquipe =@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Equipe.Retido.Data));
+            var valorNaoRetidoEquipe =@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Equipe.NaoRetido.Data));
+
+            total.Retido = valoresRetidosEquipe.reduce((s, r) => s + r);
+            total.NaoRetido = valorNaoRetidoEquipe.reduce((s, r) => s + r);
+
+            var options = {
+                series: [{
+                    name: 'Retido',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Equipe.Retido.Data)),
+                }, {
+                    name: 'Não Retido',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Equipe.NaoRetido.Data)),
+                }],
+                chart: {
+                   events: {
+                        dataPointSelection: async function (obj, dataPointIndex, event) {
+
+                            var dataPointIndex = event.dataPointIndex;
+                            var categories = event.w.config.xaxis.categories;
+
+                            if (obj.button == 0) {
+                                if (Array.isArray(categories) && categories.length > 0) {
+
+                                    var serie = event.w.config.series[event.seriesIndex].name;
+
+                                    var equipe = categories[dataPointIndex];
+
+                                    if (equipe != "") {
+
+                                        $('#loading').toggleClass('none');
+
+                                        let url = `@Url.Action("TabelaEquipe")?equipe=${equipe}&De=${De}&Ate=${Ate}&serie=${serie}&especialista=${especialista}`;
+
+                                        await datatable2.ajax.url(url).load(function (resp) {
+                                            if (resp.data.length > 0) {
+                                                $('#qtd-retido-segunda-tabela').text(resp.resumo.quantidadeRetido);
+                                                $('#valor-retido-segunda-tabela').text(resp.resumo.valorRetido);
+                                                $('#qtd-nao-retido-segunda-tabela').text(resp.resumo.quantidadeNaoRetido);
+                                                $('#valor-nao-retido-segunda-tabela').text(resp.resumo.valorNaoRetido);
+                                            }
+                                        });
+
+                                        $('#tabelas-segundos-graficos').removeClass('none');
+
+                                        document.getElementById('tabelas-segundos-graficos').scrollIntoView(true);
+
+                                        var titulografico = $('#texto-equipe').text();
+
+                                        var subtitulo = $('#chart-equipe > h5').text();
+
+                                        $('#tabelas-segundos-graficos h3').text(`${titulografico}: ${subtitulo} - ${equipe}`);
+
+                                        var tipoPesquisa = '@BradescoPGP.Web.Areas.Portabilidade.Enums.TipoExportacaoExcelGrafico.Equipe.ToString()';
+
+                                        var urlExportacao = `@Url.Action("ExpertarExcel")?tipoPesquisa=${tipoPesquisa}&especialista=${especialista}&equipe=${equipe}&De=${De}&Ate=${Ate}&serie=${serie}`;
+
+                                        $('#exportar-excel-segudos').attr('href', urlExportacao);
+
+                                        $('#loading').toggleClass('none');
+                                    }
+                                }
+                            }
+                            else {
+                                $('#tabelas-segundos-graficos').addClass('none');
+                            }
+                        }
+                    },
+                    type: 'bar',
+                    height: 350,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            customIcons: [{
+                                icon: '<i id="print-equipe" class="fa fa-print" style="font-size: 20px; margin-left:15px; height:20px"></i>',
+                                index: 1,
+                                title: 'Imprimir',
+                                class: 'custom-icon',
+                                click: function (chart, options, e) {
+
+                                    var clone = $('#imprimir-equipe').clone();
+
+                                    clone.find('.apexcharts-tooltip, .apexcharts-toolbar').each(function (i, v) {
+                                        $(v).remove();
+                                    });
+
+                                    var conteudo = clone.html();
+
+                                    tela_impressao = window.open();
+                                    tela_impressao.document.write(conteudo);
+                                    tela_impressao.window.print();
+                                    tela_impressao.window.close();
+                                }
+                            }]
+                        },
+                        autoSelected: 'zoom'
+                    },
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+
+                    },
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (value, opts) {
+                        let porcentage = 0;
+
+                        var serie = opts.w.globals.seriesNames[opts.seriesIndex];
+
+                        if (serie == "Retido") {
+                            porcentage = value / total.Retido * 100;
+                        }
+                        else {
+                            porcentage = value / total.NaoRetido * 100;
+                        }
+                        return porcentage.toFixed(2) + "%";
+                    }
+                },
+                tooltip: {
+                    enable: true,
+                    y: {
+                        formatter: function (value, opts) {
+                            let porcentage = 0;
+
+                            var serie = opts.w.globals.seriesNames[opts.seriesIndex];
+
+                            if (serie == "Retido") {
+                                porcentage = value / total.Retido * 100;
+                            }
+                            else {
+                                porcentage = value / total.NaoRetido * 100;
+                            }
+                            return `Valor: ${value.toLocaleString()} | Porcentagem: ${porcentage.toFixed(2)}%`;
+                        }
+                    }
+                },
+                stroke: {
+                    width: 1,
+                    colors: ['#fff']
+                },
+                xaxis: {
+                    categories: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Equipe.Labels)),
+                    labels: {
+                        minHeight: 90,
+                        maxHeight: undefined
+                    }
+                },
+                fill: {
+                    opacity: 1
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'left',
+                    offsetX: 40
+                }
+            };
+
+                var chart = new ApexCharts(document.querySelector("#chart-equipe"), options);
+                chart.render();
+
+            //============================================================================================
+            $("#form-pesquisa").submit(function (e) {
+                validarDataPesquisa(e);
+            });
+
+        });
+    </script>
+}

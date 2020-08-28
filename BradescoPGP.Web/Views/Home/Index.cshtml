@@ -1,0 +1,716 @@
+﻿@model BradescoPGP.Web.Models.ClienteViewModel
+@using Newtonsoft.Json;
+@using System.Security.Claims;
+@using BradescoPGP.Common;
+@{
+    var nomeConsultor = ((ClaimsIdentity)User.Identity).FindFirst(ClaimTypes.Name).Value;
+    var matricula = ((ClaimsIdentity)User.Identity).FindFirst("matricula").Value;
+
+    string scrollVenc, scrollPipe, scrollTed, scrollNiver, scrollEvento;
+    scrollVenc = Model.Agenda != null && Model.Agenda.Vencimentos.Any() ? "scroll" : "";
+    scrollTed = Model.Agenda != null && Model.Agenda.TEDs.Any() ? "scroll" : "";
+    scrollPipe = Model.Agenda != null && Model.Agenda.Pipelines.Any() ? "scroll" : "";
+    scrollNiver = Model.Agenda != null && Model.Agenda.Aniversariantes.Any() ? "scroll" : "";
+    scrollEvento = Model.Agenda != null && Model.Agenda.Eventos.Any() ? "scroll" : "";
+
+    var col = ViewBag.Redirect == true || User.IsInRole(NivelAcesso.Especialista.ToString()) ? "9" : "12";
+
+    bool obteveSenha = Session["password"] != null;
+}
+
+<div class="row">
+    <div class="col-lg-@col">
+        <div class="box box-danger m-b-5">
+            <div class="box-header">
+                <h3 class="box-title">Busca Rápida</h3>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="box-body with-border">
+                <div class="form-inline custom-search-inputs">
+                    <div class="row relative">
+                        <form method="get" id="form-pesquisa" action="@Url.Action("Buscar","Home", new { area=""})">
+                            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    <label for="agencia">Agência</label><br class="hidden-md hidden-sm hidden-xs" />
+                                    <input type="number" name="Agencia" id="agencia" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    <label for="conta">Conta</label><br class="hidden-md hidden-sm hidden-xs" />
+                                    <input type="number" name="Conta" id="conta" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-5 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    <label for="conta">CPF / CNPJ</label>
+                                    <input type="text" name="cpfCnpj" id="cpfCnpj" class="form-control cnpj" />
+                                </div>
+                            </div><br />
+
+                            <div class="col-lg-4 col-md-5 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    <label for="nome">Nome</label>
+                                    <input type="text" autocomplete="off" name="nome" id="nome" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-5 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    <label for="nome">Especialista</label>
+                                    @Html.DropDownList("especialista", (List<SelectListItem>)ViewBag.Especialistas, new { @class = "form-control" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-1 col-sm-12 col-xs-12">
+                                <br />
+                                <button type="submit" id="btn-search" class="btn btn-danger">Buscar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Consultor != null)
+        {
+            <div class="box no-border m-t-1" id="box-home">
+                <div class="box-header with-border">
+                    @if (Model.Consultor != null)
+                    {
+                        <p class="pull-right" id="consultor">Carteira de: @Model.Consultor.Nome</p>
+                    }
+                    else
+                    {
+                        <p class="pull-right" id="consultor">Cliente não possuí encarteiramento</p>
+                    }
+                    <p>
+                        <small><b>Agencia:</b> <span id="small-agencia">@Model.Agencia</span></small>
+                        <small><b>Conta:</b> <span id="small-conta">@Model.Conta</span></small>
+                        <small><b>CPF/CNPJ:</b> <span id="small-cpf-cnpj">@Model.CPFCNPJ</span></small>
+                    </p>
+
+                    <p>Resultados</p>
+
+                </div>
+                <div class="box-body">
+                    <!--primeira faixa de informações-->
+                    <div class="col-lg-2 col-md-2 border-col">
+                        <h4 class="text-red">Aniversário</h4>
+                        <small id="niver" class="text-center">
+                            @if (Model.Aniversario != null)
+                            {
+                                <span>@Model.Aniversario.Value.ToString("dd/MM/yyyy")</span>
+                            }
+                            else
+                            {
+                                <span>ND</span>
+                            }
+                        </small>
+                    </div>
+                    <div class="col-lg-3 col-md-2 border-col">
+                        <h4 class="text-red">Cliente</h4>
+                        <small id="nome-cli" class="text-center">
+                            @if (Model.NomeCliente != null)
+                            {
+                                <span>@Model.NomeCliente</span>
+                            }
+                            else
+                            {
+                                <span>ND</span>
+                            }
+                        </small>
+                    </div>
+                    <div class="col-lg-2 col-md-2 border-col">
+                        <h4 class="text-red">Investfacil</h4>
+                        <small id="cadu">
+                            @Model.TemInvestfacil
+                        </small>
+                    </div>
+                    <div class="col-lg-2 col-md-d border-col">
+                        <h4 class="text-red">PSDC</h4>
+                        <small>
+                            @if (Model.PSDC != null)
+                            {
+                                <span>@Model.PSDC.PSDC_SituacaoCadastral <br /> @Model.PSDC.PSDC_DataAtualizacao.ToShortDateString()</span>
+                            }
+                            else
+                            {
+                                <span>ND</span>
+                            }
+                        </small>
+                    </div>
+                    <div class="col-lg-1 col-md-2 border-col">
+                        <h4 class="text-red">APIC</h4>
+                        <div id="api">
+                            <small>
+                                @if (Model.APIC != null)
+                                {
+                                    <span>@Model.APIC.APIC_Perfil.ToUpper() <br /> @Model.APIC.APIC_DataPerfil.ToShortDateString()</span>
+                                }
+                                else
+                                {
+                                    <span>ND</span>
+                                }
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-2 border-col">
+                        <div class="pull-right">
+                            <h4 class="text-red">Corretora</h4>
+                            <small id="corretora">
+                                @if (Model.Corretora.CorretoraBra)
+                                {
+                                    <span><b>BRA:</b> SIM &nbsp; <b>Status:</b> @Model.Corretora.StatusBra.ToUpper()</span><br />
+                                }
+                                else
+                                {
+                                    <span><b>BRA:</b> NÃO</span><br />
+                                }
+                                @if (Model.Corretora.CorrtoraAGO)
+                                {
+                                    <span><b>AGO:</b> SIM &nbsp; <b>Status:</b> @Model.Corretora.StatusAgo.ToUpper()</span>
+                                }
+                                else
+                                {
+                                    <span><b>AGO:</b> NÃO</span>
+
+                                }
+                            </small>
+                        </div>
+                    </div>
+                    <!--/primeira faixa de informações-->
+                    <!--TEDS-->
+                    <div class="col-lg-12 col-md-12 border-col ">
+                        <h4 class="text-red">TED's</h4>
+                        <div class="scroll">
+                            <ul class="display-info-home" id="ted">
+                                @if (Model.TEDs.Any() || Model.TEDs.Count > 0)
+                                {
+                                    foreach (var ted in Model.TEDs)
+                                    {
+                                        <li>
+                                            <small> @string.Format("{0:C}", ted.Valor) | @ted.Data.ToString("dd/MM/yyyy") - @ted.Status</small> &nbsp;
+                                            <button class="btn-edit-pencil" id="@ted.Id" onclick="core.home.getTed('@Url.Action("ObterTED", "TEDs", new { ted.Id, area="" })', '@Url.Action("AtualizarTED", "TEDs", new { area=""})','@Url.Action("AdicionarProduto", "TEDs", new { area=""})','@Url.Action("ExcluirAplicacao","TEDs", new { area=""})','@Request.Url.PathAndQuery')"><i class="fa fa-pencil" style="color:red"></i></button><br />
+                                        </li>
+                                    }
+                                }
+                                else
+                                {
+                                    <li>Nenhuma informação localizada</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!--Vencimentos-->
+                    <div class="col-lg-12 border-col ">
+                        <h4 class="text-red">Vencimentos</h4>
+                        <div class="scroll">
+                            <ul class="display-info-home" id="vencimento">
+                                @if (Model.Vencimentos != null && Model.Vencimentos.Count > 0)
+                                {
+                                    int quantidadeLiCriada = 0;
+                                    var statusPermitidos = new String[] { "em branco", "em negociação", "contato sem sucesso" };
+                                    foreach (var venc in Model.Vencimentos)
+                                    {
+                                        if (statusPermitidos.Contains(venc.Status?.ToLower()))
+                                        {
+                                            <li data-id="@venc.Id">
+                                                <small> @venc.Produto - @venc.DataVencimento.ToString("dd/MM/yyyy") - @string.Format("{0:c}", venc.SaldoAtual) - @venc.Status</small> &nbsp;
+                                                <button onclick="$(this).next().toggleClass('none')" class="btn-edit-pencil"><i class="fa fa-pencil" style="color:red"></i></button>
+
+                                                <span class="none">
+                                                    <select name="StausId" id="StatusId" class="form-control" style="width:200px; display:inline">
+                                                        @foreach (var item in (List<SelectListItem>)ViewBag.StatusVencimento)
+                                                        {
+                                                            var selected = venc.StatusId?.ToString() == item.Value ? "selected" : "";
+
+                                                            <option value="@item.Value" @selected> @item.Text </option>
+                                                        }
+                                                    </select>
+                                                    <button onclick="atualizarVencimento(this)" class="btn btn-danger btn-sm" id="alterar-status-venc-btn">Alterar</button>
+                                                </span>
+                                                <br />
+                                            </li>
+                                            quantidadeLiCriada++;
+                                        }
+                                    }
+                                    if (quantidadeLiCriada == 0)
+                                    {
+                                        <li>Nenhuma informação localizada</li>
+                                    }
+                                }
+                                else
+                                {
+                                    <li>Nenhuma informação localizada</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!--/Pipeline-->
+                    <div class="col-lg-12 col-md-12 border-col border-bottom relative">
+                        <h4 class="text-red">Pipelines</h4>
+                        <div class="scroll">
+                            <ul class="display-info-home" id="pipe" style="display:inline;">
+                                @if (Model.Pipelines != null)
+                                {
+                                    foreach (var pipe in Model.Pipelines)
+                                    {
+                                        var statusValidos = new string[] { "Em Branco", "Prorrogado" };
+
+                                        var PrevistoProrrogado = pipe.DataProrrogada.HasValue ? $"Prorrogado para: {pipe.DataProrrogada.Value.ToShortDateString()}" :
+                                            $"Previsto para: {pipe.DataPrevista.ToShortDateString()}";
+
+                                        if (statusValidos.Contains(pipe.Situacao))
+                                        {
+                                            pipe.Origem = string.IsNullOrEmpty(pipe.Origem) ? "Sem origem" : pipe.Origem;
+                                                
+                                            <li>
+                                                <small> @pipe.Origem &nbsp; | &nbsp; @pipe.ValorDoPipe.ToString("c", CultureInfo.CurrentCulture) &nbsp;|&nbsp; @PrevistoProrrogado &nbsp;|&nbsp; @pipe.Situacao</small> &nbsp;
+                                                <button class="btn-edit-pencil" id="@pipe.Id" onclick="core.home.getPipe(this.id, '@Url.Action("AtualizarPipeline", "Pipeline", new { area=""})', '@Url.Action("ObterPipe", "Pipeline", new { area=""})','@Request.Url.PathAndQuery')"><i class="fa fa-pencil" style="color:red"></i></button><br />
+                                            </li>
+                                        }
+                                    }
+                                    if (Model.Pipelines.Where(s => s.Situacao.Contains("Em Branco") || s.Situacao.Contains("Prorrogado")).ToList().Count == 0)
+                                    {
+                                        <li>Nenhuma informação localizada</li>
+                                    }
+
+                                }
+                                else
+                                {
+                                    <li>Nenhuma informação localizada</li>
+                                }
+                            </ul>
+                            <a href="#" class="btn btn-danger" id="btn-novo-pipe">Novo Pipeline</a>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        }
+
+        <div class="box no-border m-t-1 none" id="box-resultados">
+            <div class="box-header with-border">
+                <p>Resultados</p>
+            </div>
+            <div class="box-body">
+                <span id="aviso-usuarios-encontrados"></span>
+                <br />
+                <table class="table table-striped table-hover display responsive" id="resultados">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Agência</th>
+                            <th>Conta</th>
+                            <th>CPF/CNPJ</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="box no-border" id="box-popup-sinv">
+            <div class="box-body ">
+
+                <!--Botões Sinv- particionados, código futuro.-->
+                <div class="d-flex j-between">
+                    <button style="width:25%" class="minmaxCon event-style links-popups" id="sinv-link">SINV </button>
+                    <button style="width:32%" disabled class="minmaxCon event-style links-popups" id="sinv-enviar-termos-link">Termos</button>
+                    <button style="width:40%" disabled class="minmaxCon event-style links-popups" id="sinv-transacional-link">Transacional</button>
+                </div>
+
+                <!-- SESSÂO BOTÃO COCKPIT, APIC, PSDC -->
+                @if (!ViewBag.Error)
+                {
+                    <div class="minmaxCon event-style links-popups" id="cockpit-link"> COCKPIT </div>
+                }
+
+                <a style="text-decoration:none" id="psdc-link" href="#">
+                    <div class="minmaxCon event-style links-popups">PSDC</div>
+                </a>
+
+                <button class="minmaxCon event-style links-popups" id="apic-link" onclick="core.home.novaJanela('https://intranet8.net.bradesco.com.br/apic/presHome.jsf','apic')">
+                    APIC
+                </button>
+
+            </div>
+        </div>
+
+        @if (User.IsInRole(NivelAcesso.Especialista.ToString()))
+        {
+            <!-- Eventos do dia -->
+            <div class="box box-danger" id="agenda-home">
+                <div class="box-header with-border">
+                    <h6 class="text-center">Lista de enventos de </h6>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" aria-expanded="false" data-widget="collapse">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <div id="external-events">
+                        <div class="eventos-ted">
+                            <p class="title">Teds</p>
+                            <div class="@scrollTed">
+                                @if (Model.Agenda != null && Model.Agenda.TEDs.Any())
+                                {
+                                    foreach (var ted in Model.Agenda.TEDs.OrderByDescending(o => o.Data))
+                                    {
+
+                                        var bg = ted.Data.Date < DateTime.Now.Date ? "bg-red" : "bg-blue";
+                                        bg = ted.StatusId == 13 ? "bg-yellow" : bg;
+
+                                        <div data-agencia="@ted.Agencia" data-conta="@ted.Conta" class="external-event @bg">@ted.Data.ToShortDateString() @string.Format("{0:c}", ted.Valor) @ted.NomeCliente</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div> Nenhuma informação localizada. </div>
+                                }
+                            </div>
+                        </div><hr />
+
+                        <div class="eventos-vencimento">
+                            <p class="title">Vencimentos</p>
+                            <div class="@scrollVenc">
+                                @if (Model.Agenda != null && Model.Agenda.Vencimentos.Any())
+                                {
+                                    foreach (var venc in Model.Agenda.Vencimentos.OrderByDescending(o => o.Dt_Vecto_Contratado))
+                                    {
+                                        var minDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1).Date;
+                                        var maxDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month)).AddMonths(1).Date;
+
+                                        if (venc.Dt_Vecto_Contratado.Date >= minDate && venc.Dt_Vecto_Contratado.Date <= maxDate)
+                                        {
+
+                                            var bg = venc.Dt_Vecto_Contratado.Date < DateTime.Now.Date ? "bg-red" : "bg-blue";
+                                            bg = venc.StatusId.HasValue && venc.StatusId == 6 ? "bg-yellow" : bg;
+
+                                            <div data-agencia="@venc.Cod_Agencia" data-conta="@venc.Cod_Conta_Corrente" class="external-event @bg">@string.Format("{0:c}", venc.SALDO_ATUAL) @venc.Dt_Vecto_Contratado.ToShortDateString() @venc.Nm_Cliente_Contraparte</div>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <div> Nenhuma informação localizada. </div>
+                                }
+                            </div>
+                        </div><hr />
+
+                        <div class="eventos-pipeline">
+                            <p class="title">Pipelines</p>
+                            <div class="@scrollPipe">
+                                @if (Model.Agenda != null && Model.Agenda.Pipelines.Any())
+                                {
+                                    foreach (var pipe in Model.Agenda.Pipelines.OrderByDescending(o => o.DataProrrogada.HasValue ? o.DataProrrogada.Value : o.DataPrevista))
+                                    {
+
+                                        string bg = string.Empty;
+                                        if (pipe.DataProrrogada.HasValue)
+                                        {
+                                            if (pipe.DataProrrogada.Value.Date <= DateTime.Now.Date)
+                                            {
+                                                bg = pipe.DataProrrogada.Value.Date < DateTime.Now.Date ? "bg-red" : "bg-blue";
+                                                <div data-agencia="@pipe.Agencia" data-conta="@pipe.Conta" class="external-event @bg">
+                                                    @string.Format("{0:c}", pipe.ValorDoPipe) @pipe.DataProrrogada.Value.ToString("dd/MM/yyyy") @pipe.NomeCliente
+                                                </div>
+                                            }
+                                        }
+                                        else if (pipe.DataPrevista.Date <= DateTime.Now.Date)
+                                        {
+                                            bg = pipe.DataPrevista.Date < DateTime.Now.Date ? "bg-red" : "bg-blue";
+                                            <div data-agencia="@pipe.Agencia" data-conta="@pipe.Conta" class="external-event @bg">
+                                                @string.Format("{0:c}", pipe.ValorDoPipe) @pipe.DataPrevista.ToString("dd/MM/yyyy") @pipe.NomeCliente
+                                            </div>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <div> Nenhuma informação localizada. </div>
+                                }
+                            </div>
+                        </div><hr />
+
+                        <div class="eventos-aniversario">
+                            <p class="title">Aniversários</p>
+                            <div class="@scrollNiver">
+                                @if (Model.Agenda != null && Model.Agenda.Aniversariantes.Any())
+                                {
+                                    foreach (var niver in Model.Agenda.Aniversariantes.OrderByDescending(o => o.DataAniversario))
+                                    {
+                                        if (niver.DataAniversario.Day == DateTime.Now.Day && niver.DataAniversario.Month == DateTime.Now.Month)
+                                        {
+                                            <div data-agencia="@niver.Agencia" data-conta="@niver.Conta" class="external-event bg-blue">
+                                                @niver.DataAniversario.ToShortDateString() @niver.Nome
+                                            </div>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <div> Nenhuma informação localizada. </div>
+                                }
+                            </div>
+                        </div><hr />
+
+                        <div id="meus-eventos">
+                            <p class="title">Meus Eventos</p>
+                            <div class="@scrollEvento eventos">
+                                @if (Model.Agenda != null && Model.Agenda.Eventos.Any())
+                                {
+                                    foreach (var evento in Model.Agenda.Eventos.OrderByDescending(o => o.DataHoraInicio))
+                                    {
+                                        if (evento.DataHoraInicio.Date == DateTime.Now.Date)
+                                        {
+                                            var bg = evento.DataHoraInicio < DateTime.Now ? "bg-red" : "bg-blue";
+                                            <div class="external-event @bg" data-start="@evento.DataHoraInicio.ToString("yyyy-MM-dd HH:mm:ss")"
+                                                 data-end="@evento.DataFim.ToString("yyyy-MM-dd HH:mm:ss")" data-description="@evento.Descricao"
+                                                 data-title="@evento.Titulo"
+                                                 onclick="detalheEvento(this)">
+                                                @evento.DataHoraInicio.ToString("dd/MM/yyyy HH:mm") @evento.Titulo
+                                                <span data-id="@evento.Id" class="excluir-evento pull-right"><i class="fa fa-close"></i></span>
+                                            </div>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <div> Nenhuma informação localizada. </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                @if (User.IsInRole(NivelAcesso.Especialista.ToString()))
+                {
+                    <div class="box-footer" id="footer-events">
+                        <a href="#" class="btn btn-info btn-block" id="add-new-event">Novo Evento</a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+@if (ViewBag.Redirect == true)
+{
+    @Html.DropDownList("OrigemId", (List<SelectListItem>)ViewBag.Origens, new { @class = "form-control none" })
+    @Html.DropDownList("MotivoId", (List<SelectListItem>)ViewBag.Motivos, new { @class = "form-control none" })
+    @Html.DropDownList("Status", (List<SelectListItem>)ViewBag.Status, new { @class = "form-control none" })
+}
+
+@section scripts{
+    <script>
+        function atualizarVencimento(elem) {
+            var id = $(elem).closest('li').data('id');
+            var StatusId = $(elem).prev().val();
+            $.get('@Url.Action("AtualizarVencimento", "Vencimento", new { area = "" })', { id, StatusId }, function (resp) {
+                core.home.recarregaVencimentosHome(resp);
+            })
+        }
+
+        function cpfCockpit(cpf) {
+            var retorno = 0;
+            for (var i = 0; i < cpf.length; i++) {
+                if (cpf[i] != cpf[i + 1]) {
+                    retorno = cpf[i] != '0' ? i : i + 1;
+                    break;
+                }
+            }
+            return retorno;
+        }
+
+        $(document).ready(function () {
+
+            var agencia = '@Request.Params.Get("agencia")';
+            var conta = '@Request.Params.Get("conta")';
+            var cpfcnpj = '@Request.Params.Get("cpfCnpj")';
+
+            if ('@ViewBag.Error' == 'True') {
+                core.notify.showNotify('@ViewBag.ErrorMessage', 'info', 'top-center');
+            }
+
+            var redirect = '@ViewBag.Redirect';
+
+            if (redirect == "False") {
+                $('#box-home').hide(0);
+                $('#box-popup-sinv').hide(0);
+            } else {
+                if ('@(Model.Consultor?.Nome)' != "") {
+                    @{
+                        var jsonCliente = JsonConvert.SerializeObject(new
+                        {
+                            Model.Agencia,
+                            Model.Conta,
+                            Model.Consultor,
+                            Model.CPFCNPJ,
+                            Model.NomeCliente,
+                            Model.Id
+                        },
+                        new JsonSerializerSettings { Formatting = Formatting.None, ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+                    }
+                    window.sessionStorage.setItem("cliente", '@Html.Raw(jsonCliente)');
+                }
+
+                if ('@ViewBag.CarregarPopUps' == 'True'){
+                    @*core.modal.carregarSINV(agencia, conta, cpfcnpj, '@ViewBag.SINVUrl');*@
+                     @*core.modal.modalSinv(agencia, conta, cpfcnpj, '@ViewBag.SINVUrl');*@
+                }
+            }
+
+            //Obter ASPS
+            core.home.verificaASPS('@obteveSenha', '@Url.Action("SetaSession","Home", new { area = "" })');
+
+
+            //Mascara de CPF / CNPJ
+            $('.cnpj').focus(function () {
+                $('.cnpj').inputmask('remove');
+            })
+
+
+            //Agenda titulo
+            $('#agenda-home > .box-header > h6').append(moment().format('dddd, DD MMMM'))
+
+            $('#add-new-event').on('click', function () {
+                core.modal.modalNovoEvento('@Url.Action("NovoEvento", "Agenda", new { area = "" })', '@nomeConsultor', '@matricula');
+            })
+
+            //Click dos eventos agenda
+            $('.external-event').on('click', function (e) {
+
+                if ($(this).data('agencia') != undefined && $(this).data('conta') != undefined) {
+                    var agencia = $(this).data('agencia');
+                    var conta = $(this).data('conta');
+
+                    window.location.href = '@Url.Action("RedirecionarHome", "Home", new { area = "" })' + '?agencia=' + agencia + '&conta=' + conta;
+                }
+            });
+
+
+            $('.excluir-evento').on('click', function (e) {
+                var elem = $(this);
+                var id = elem.data('id');
+
+                $.ajax({
+                    url: '@Url.Action("DeletarEvento", "Agenda", new { area = "" })',
+                    type: 'post',
+                    data: { id },
+                    success: function (resp) {
+                        if (resp.success) {
+                            $('#calendar').fullCalendar('refetchEvents');
+                            elem.parent().remove();
+                            core.notify.showNotify("Evento excluido com sucesso!", 'info', 'top-center');
+                        } else {
+                            core.notify.showNotify("Não foi possível excluir este evento.", 'error', 'top-center');
+                        }
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
+            });
+
+
+            //Envia post da pesquisa por agencia conta e cpf-cnpj
+            $('#form-pesquisa').submit(function (e) {
+
+                var agencia = $('input#agencia').val();
+                var conta = $('input#conta').val();
+                var nome = $('input#nome').val();
+                var especialista = $('#especialista').val();
+                var cpfcnpjInput = $('input#cpfCnpj').val();
+                cpfcnpj = cpfcnpjInput.replace(/\D/g, '');
+
+                var valorDigitado = cpfcnpjInput;
+                var length = valorDigitado.length;
+
+                if (isNaN(valorDigitado)) {
+                    e.preventDefault();
+                    core.notify.showNotify('O compo CPF/CNPJ deve ser preenchido apenas com numeros.', 'error', 'top-center');
+                    return;
+                }
+                else if (length > 0 && length < 11 || length > 0 && length > 14 || (length == 12 || length == 13)) {
+                    e.preventDefault();
+                    core.notify.showNotify('O valor informado não corresonde aos formatos válidos de CPF ou CNPJ, ' +
+                        'por favor digite novamente para realizar uma busca', 'warning', 'top-center');
+                    return;
+                }
+
+                //if (cpfcnpj != "") {
+                //    $(this).find("input#cpfCnpj").inputmask('remove');
+                //    $(this).find("input#cpfCnpj").val(cpfcnpj);
+                //}
+
+                if (nome != "" && (agencia != "" || conta != "" || cpfcnpj != "")) {
+                    e.preventDefault();
+                    core.notify.showNotify("O campo nome não pode ser preenchido junto com Agencia, Conta ou CPF, caso queira pesquisar por nome limpe os outros campos.",
+                        'warning', 'top-center');;
+                    return;
+                }
+                else if (agencia != "" && conta == "") {
+                    core.notify.showNotify("Para fazer uma pesquisa é preciso informar Agencia e Conta para buscar por esses valores.", "warning", 'top-center');
+                    return;
+                }
+                else if (nome == "" && cpfcnpj == "" && agencia == "" && conta == "") {
+                    e.preventDefault();
+                    core.notify.showNotify("Você precisa preencher pelo menos agencia e conta, CPF ou Nome, para fazer uma pesquisa", "warning", 'top-center');
+                    $('#agencia').focus();
+                    return;
+                }
+
+                if (nome != "" && conta == "" && agencia == "" && cpfcnpj == "") {
+                    e.preventDefault();
+
+                    //Faz a pesquisa no servidor e preenche os campos na Home
+                    core.home.inicialPreLoader();
+
+                    $('#preloader-title').text('Iniciando buscas por ' + nome);
+
+                    core.home.search_by_agencia_conta_cpfcpnj('@Url.Action("Buscar", "Home", new { area = "" })', "", "", "", nome, '@Url.Action("RedirecionarHome", "Home", new { area = "" })', especialista);
+                }
+            })
+
+            $('#psdc-link').click(function () {
+                core.home.PSDC('https://www4.net.bradesco.com.br/psdc/presHome.jsf' @*'@ViewBag.PSDCUrl'*@, agencia, conta, cpfcnpj);
+            });
+
+            $('#sinv-link').click(function () {
+                core.modal.modalSinv(agencia, conta, cpfcnpj, '@ViewBag.SINVUrl');
+                $('#sinv-enviar-termos-link').prop('disabled', false);
+                $('#sinv-transacional-link').prop('disabled', false);
+            });
+
+            $('#sinv-transacional-link').click(function () {
+                core.modal.modalSinvTransacional(agencia, conta, "https://intranet8.net.bradesco.com.br/cinv/servlet/ConsultaInvestimentosServlet");
+            });
+
+            $('#sinv-enviar-termos-link').click(function () {
+                core.modal.modalSinvEnviarTermos('https://intranet8.net.bradesco.com.br/cinv/servlet/EnviarTermos/');
+            });
+
+            $("#cockpit-link").click(function () {
+                var posInicial = cpfCockpit(cpfcnpj);
+                cpfcnpj = cpfcnpj.substr(posInicial, cpfcnpj.length - posInicial - 2);
+
+                //Cockpit
+                core.home.novaJanela("@ViewBag.CockpitPost?cpf=" + cpfcnpj.replace(/\D/g, '').substr(0, 9) + "&agencia=" + agencia + "&conta=" + conta, "Cockpit");
+            });
+
+            //Criar novo Pipeline
+            $('#btn-novo-pipe').click(function(){
+                core.modal.modalNovopipe('@Url.Action("NovoPipeline", "Pipeline", new { area = "" })', '@Url.Action("AtualizarPipeline", "Pipeline", new { area = "" })', '@Url.Action("ObterPipe", "Pipeline", new { area = "" })');
+            });
+        });
+    </script>
+}

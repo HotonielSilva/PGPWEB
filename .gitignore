@@ -1,0 +1,17 @@
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[pP]ackages/
+[pP]roperties/PublishProfiles
+Download/
+Logs/
+*.log
+.vs
+
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+packages

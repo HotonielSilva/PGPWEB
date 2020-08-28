@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="3ef37673ef3246f09bfcd8d31c2c8021" Name="Diagram1">
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Aniversarios" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.AplicacaoResgate" Width="1.5" PointX="0.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Clusterizacoes" Width="1.5" PointX="10.75" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Cockpit" Width="1.5" PointX="10.75" PointY="11.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Configuracoes" Width="1.5" PointX="0.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Corretora" Width="1.5" PointX="12.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Evento" Width="1.5" PointX="12.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Fundos" Width="1.5" PointX="12.75" PointY="12.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Links" Width="1.5" PointX="14.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Motivo" Width="1.5" PointX="3.75" PointY="9" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Notificacoes" Width="1.5" PointX="10.25" PointY="1.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Origem" Width="1.5" PointX="0.75" PointY="11.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Perfil" Width="1.5" PointX="5.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Pipeline" Width="1.5" PointX="3" PointY="13.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Produtividade" Width="1.5" PointX="12.75" PointY="15.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Qualitativo" Width="1.5" PointX="14.75" PointY="15.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Solicitacao" Width="1.5" PointX="5.25" PointY="17.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Status" Width="1.5" PointX="0.75" PointY="14.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.SubMotivo" Width="1.5" PointX="3" PointY="21" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.SubStatus" Width="1.5" PointX="3" PointY="27.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.TED" Width="1.5" PointX="6" PointY="10.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.TEDFaixaEquipe" Width="1.5" PointX="16.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.TedsAplicacoes" Width="1.5" PointX="8.25" PointY="11.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.TedsContatos" Width="1.5" PointX="8.25" PointY="15.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.TedsMotivoOutrasInst" Width="1.5" PointX="3.75" PointY="6.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.TedsMotivos" Width="1.5" PointX="3.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.TedsProdutos" Width="1.5" PointX="6" PointY="7.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.TemInvestFacil" Width="1.5" PointX="16.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Usuario" Width="1.5" PointX="8" PointY="1" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Vencimento" Width="1.5" PointX="3" PointY="36.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.vw_MotivosSemSubmotivos" Width="1.5" PointX="5.75" PointY="5.75" IsExpanded="true" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_Pipeline_Motivo" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_Solicitacao_Motivo" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_SubMotivo_Motivo" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_TED_MotivosTeds" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK__Notificac__IdUsu__2EDAF651" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_Pipeline_Origem" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK__Usuario__PerfilI__619B8048" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_Pipeline_Status" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_Solicitacao_Status" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_Solicitacao_SubMotivo" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_Solicitacao_SubStatus" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_SubStatus_Status" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_TED_Status" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_Vencimento_Status" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK__TED__MotivoTedId__6166761E" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK__TED__OutrasInstI__634EBE90" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_TedsAplicacoes_TED" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_TedsContatos_TbTED" ManuallyRouted="false" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_TbTedsAplicacoes_TbTedsProdutos" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.WindowsServiceConfig" Width="1.5" PointX="17.375" PointY="6.75" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.CaptacaoLiquidaResumo" Width="1.5" PointX="15.375" PointY="11.75" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.AplicResgateContatos" Width="1.5" PointX="3" PointY="0.75" />
+        <AssociationConnector Association="ApplicationContextRepositorio.FK_AplicResgateContatos_IdAplicacaoResgate" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Encarteiramento" Width="1.5" PointX="17.375" PointY="11.75" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.vwClusterTopTier" Width="1.5" PointX="17.375" PointY="17.75" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.vw_CaminhoDinheiroAgrupado" Width="1.5" PointX="9.375" PointY="18.75" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.Investfacil" Width="1.5" PointX="11.375" PointY="18.75" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.InvestFacilResumo" Width="1.5" PointX="13.375" PointY="3.75" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.CaminhoDinheiro" Width="1.5" PointX="19.375" PointY="0.75" />
+        <EntityTypeShape EntityType="ApplicationContextRepositorio.CaptacaoLiquida" Width="1.5" PointX="19.375" PointY="7.75" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

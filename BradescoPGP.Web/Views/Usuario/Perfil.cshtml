@@ -1,0 +1,169 @@
+﻿@model BradescoPGP.Web.Models.UsuarioViewModel
+@using BradescoPGP.Common
+@{
+    ViewBag.Title = "Perfil";
+
+    var queryStringParam = Request.QueryString["matricula"];
+
+
+
+    var eConsulta = !string.IsNullOrWhiteSpace(queryStringParam) && queryStringParam != ((System.Security.Claims.ClaimsIdentity)User.Identity).FindFirst("matricula").Value;
+}
+<div class="box box-danger m-b-5">
+    <div class="box-header">
+        <h3 class="box-title">@Html.Raw(Model == null ? "Dados" : eConsulta ? $"Dados de {Model.Nome}" : "Seus dados")</h3>
+        @*<div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                </button>
+            </div>*@
+    </div>
+
+    <div class="box-body with-border">
+        <div class="form-inline custom-search-inputs">
+            <div class="row relative">
+                <div id="main-search">
+                    @if (Model == null && ViewBag.error != null)
+                    {
+                        <label class="text-danger mx-2">@Html.Raw(ViewBag.error)</label>
+                    }
+                    else
+                    {
+                        <div class="">
+                            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.Nome) <br class="hidden-md hidden-sm hidden-xs" />
+                                    @Html.DisplayFor(m => m.Nome)
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.Matricula) <br class="hidden-md hidden-sm hidden-xs" />
+                                    @Html.DisplayFor(m => m.Matricula)
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.Equipe) <br class="hidden-md hidden-sm hidden-xs" />
+                                    @Html.DisplayFor(m => m.Equipe)
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.NomeSupervisor) <br class="hidden-md hidden-sm hidden-xs" />
+                                    @Html.DisplayFor(m => m.NomeSupervisor)
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.MatriculaSupervisor) <br class="hidden-md hidden-sm hidden-xs" />
+                                    @Html.DisplayFor(m => m.MatriculaSupervisor)
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    <label>Código Usuário</label> <br class="hidden-md hidden-sm hidden-xs" />
+                                    @Html.DisplayFor(m => m.NomeUsuario)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                            <div class="form-group">
+                                @Html.LabelFor(m => m.Perfil) <br class="hidden-md hidden-sm hidden-xs" />
+                                @Html.DisplayFor(m => m.Perfil.Descricao)
+                            </div>
+                        </div>
+
+                        if (User.IsInRole(NivelAcesso.Especialista.ToString()))
+                        {
+                            <div class="col-lg-3 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-check">
+                                    @Html.CheckBoxFor(c => c.ReceberNotificacaoEvento, new { disabled = "disabled" })
+                                    @Html.LabelFor(l => l.ReceberNotificacaoEvento)
+                                    <br />
+                                    @Html.CheckBoxFor(c => c.ReceberNotificacaoPipeline, new { disabled = "disabled" })
+                                    @Html.LabelFor(l => l.ReceberNotificacaoPipeline)
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (((System.Security.Claims.ClaimsIdentity)User.Identity).FindFirst("cargo").Value.Equals(BradescoPGP.Common.NivelAcesso.Master.ToString()) && !eConsulta && ViewBag.usuarios != null)
+{
+    Html.RenderPartial("IndexUsuarioPartial", ((List<BradescoPGP.Web.Models.UsuarioViewModel>)ViewBag.usuarios), ViewData);
+}
+
+
+@section scripts{
+    <script>
+
+        function confirmarDelete(matricula, nome){
+
+            $("#modal-confirm-text").html(`Deseja realmente apagar os dados do(a) usuário(a) <strong>${nome}</strong>?`);
+
+            $("#btn-delete-confirm").attr("href", `@Url.Action("Deletar", "Usuario")?matricula=${matricula}`)
+        }
+
+        $(document).ready(function(){
+            $("#table-usuarios").DataTable({
+                searching: false,
+                lengthMenu: [25, 50, 100],
+                language: {
+                    "oPaginate": {
+                        "sFirst": "Primeiro",
+                        "sLast": "Ultimo",
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior"
+                    },
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Mostrando _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+
+                },
+                fixedHeader: true,
+            });
+
+            //Corrige o espaçamento do datatable para tabela de usuarios.
+            $('#table-usuarios_length, #table-usuarios_info').css({ padding: '8px' })
+
+
+                $('#ReceberNotificacaoEvento').change(function () {
+                    var valor = this.checked;
+                    var notificacao = 'Evento';
+
+                    $.post('@Url.Action("ReceberNotificacao", "Usuario")', { valor, notificacao }, function (resp) {
+                        if (resp.success)
+                            core.notify.showNotify(resp.message, 'success', 'top-center');
+                        else
+                            core.notify.showNotify(resp.message, 'error', 'top-center');
+                    });
+                });
+
+                $('#ReceberNotificacaoPipeline').change(function () {
+                    var valor = this.checked;
+                    var notificacao = 'Pipeline';
+
+                    $.post('@Url.Action("ReceberNotificacao", "Usuario")', { valor, notificacao }, function (resp) {
+                        if (resp.success)
+                            core.notify.showNotify(resp.message, 'success', 'top-center');
+                        else
+                            core.notify.showNotify(resp.message, 'error', 'top-center');
+                    });
+                });
+
+        });
+
+    </script>
+
+}

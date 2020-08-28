@@ -1,0 +1,194 @@
+﻿@model List<BradescoPGP.Repositorio.Solicitacao>
+@{
+    var dataAtual = DateTime.Now;
+    var minDate = new DateTime(dataAtual.Year, dataAtual.Month, 1);
+    var maxDate = dataAtual.Date;
+}
+<div class="box no-border m-b-5">
+    <div class="box-header">
+        <div class="d-flex" style="flex-direction:column; align-items:center">
+            <h3>Cliente</h3>
+            <h5>
+                @if (DateTime.TryParse(Request.Params.Get("De"), out var de) && DateTime.TryParse(Request.Params.Get("Ate"), out var ate))
+                {
+                    @de.ToShortDateString() <span>Até</span> @ate.ToShortDateString()
+                }
+                else
+                {
+                    @minDate.ToShortDateString() <span>Até</span> @maxDate.ToShortDateString()
+                }
+            </h5>
+        </div>
+    </div>
+    <div class="box-body with-border">
+        <div class="col-lg-12">
+            <div class="form-inline custom-search-inputs">
+                <div class="row relative ">
+                    <form method="get" id="form-pesquisa" action="@Url.Action("Index")">
+                        <diV class="d-flex">
+                            <div class="col-lg-3">
+                                <div class="form-group">
+                                    <label for="cpf">CPF</label>
+                                    <input type="text" autocomplete="off"  name="cpf" id="filtro-cpf" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="form-group">
+                                    <label for="nome">Nome:</label>
+                                    <input type="text" autocomplete="off" name="nome" id="filtro-nome" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-lg-5">
+                                <div class="form-group">
+                                    <label for="status">Status:</label>
+                                    @Html.DropDownList("status", (List<SelectListItem>)ViewBag.Status, new { @class = "form-control" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group">
+                                    <label for="datepicker">De:</label>
+                                    <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("De")" type="date" autocomplete="off" name="De" id="De" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="md-form">
+                                    <label for="datepicker2">Ate:</label>
+                                    <input placeholder="dd/mm/aaaa" value="@Request.Params.Get("Ate")" type="date" autocomplete="off" name="Ate" id="Ate" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-lg-4" style="margin-left: 4%;">
+                                <div style="margin-top:25px">
+                                    <button type="submit" id="btn-search" class="btn btn-gradient">Consultar</button>
+                                    <button type="reset" id="btn-limpar" class="btn btn-default">Limpar</button>
+                                </div>
+                            </div>
+                        </diV>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border m-b-5">
+            <div class="box-header">
+                <table class="table table-hover table-striped display" id="tabela-cliente">
+                    <thead>
+                        <tr>
+                            <th>CPF</th>
+                            <th>Nome do Participante</th>
+                            <th>Data da Solicitação</th>
+                            <th>Saldo em Previdência</th>
+                            <th>Valor Solicitado</th>
+                            <th>Prazo de Atendimento</th>
+                            <th>Consultor PGP</th>
+                            <th>Status</th>
+                            <th>Sub Status</th>
+                            <th class="text-center">Detalhe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var solicitacao in Model)
+                        {
+                            <tr id="@solicitacao.Id" >
+                                <td>@(solicitacao.CPF)</td>
+                                <td>@(solicitacao.NomeParticipante)</td>
+                                <td>@(solicitacao.DataInicioProcesso.ToShortDateString())</td>
+                                <td>@(solicitacao.SaldoPrevidencia.ToString("c2", System.Globalization.CultureInfo.CurrentCulture).Replace("R$", ""))</td>
+                                <td>@(solicitacao.ValorPrevistoSaida.ToString("c2", System.Globalization.CultureInfo.CurrentCulture).Replace("R$", ""))</td>
+                                <td>@(solicitacao.PrazoAtendimento?.ToShortDateString())</td>
+                                <td>@solicitacao.ConsultorPGP</td>
+                                <td>@(solicitacao.Status?.Descricao)</td>
+                                <td>@(solicitacao.SubStatus?.Descricao)</td>
+                                <td class="alg-center fnt-sz">
+                                    <button type="button" id="btn-detalhe" class="btn btn-primary m-r-10" data-backdrop="static" data-toggle="modal" data-target="#modal-detalhe" style="border:0">
+                                        <i class="fa fa-user icone-detalhe"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (Model.Any())
+                {
+                    <div class="col-lg-1">
+                        <a href="@Url.Action("ExportarExcel", new {  De = Request.Params.Get("De"), Ate = Request.Params.Get("Ate"), CodigoAgencia = Request.Params.Get("CodigoAgencia")})" target="_blank" class="btn btn-success m-r-10" data-target="#download" id="btn-download">
+                            <i class="fa fa-download icone-baixar"></i>
+                            Download
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script>
+        
+        $(document).ready(function () {
+
+            $('#tabela-cliente').DataTable({
+                "paging": true,
+                "ordering": true,
+                "info": true,
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Foram encontrados _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+                    search: "Pesquisar",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                },
+                scrollX: false,
+                fixedHeader: true,
+                columns: [
+                    { data: 'CPF' },
+                    { data: 'Nome do Participante' },
+                    {
+                        data: 'Data da Solicitação',
+                        type: 'date',
+                        render: function (data, type, row) {
+                            return type == 'display' ? data : moment(data, 'DD/MM/YYYY');
+                        }
+                    },
+                    { data: 'Saldo em Previdência' },
+                    { data: 'Valor Solicitado' },
+                    { data: 'Prazo de Atendimento' },
+                    { data: 'Consultor PGP' },
+                    { data: 'Status' },
+                    { data: 'SubStatus' },
+                    {
+                        data: 'Detalhe',
+                        orderable: false
+                    }
+                ]
+            });
+
+            $('#form-pesquisa').submit(function (e) {
+                validarDataPesquisa(e);
+                //$("#De").val(moment(data.De, 'DD/MM/YYYY').format('YYYY-MM-DD'));
+                //$("#Ate").val(moment(data.Ate, 'DD/MM/YYYY').format('YYYY-MM-DD'));
+
+                var cpf = $('#cpf').val().replace(/\D/g, '');
+
+                if (cpf != '' && cpf.length < 11) {
+                    e.preventDefault();
+                    toastr["info"]("O campo CPF deve conter 11 digitos");
+                    return;
+                }
+
+                $('#cpf').inputmask('remove').val(cpf);
+
+            });
+        });
+    </script>
+}

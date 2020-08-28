@@ -1,0 +1,5 @@
+﻿@media print {
+    .apexcharts-toolbar {
+        display: none !important;
+    }
+}

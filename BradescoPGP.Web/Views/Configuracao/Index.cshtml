@@ -1,0 +1,394 @@
+﻿@model ConfiguracaoViewModel
+@using BradescoPGP.Common
+<div class="row">
+    @if (User.IsInRole(NivelAcesso.Master.ToString()))
+    {
+        <div class="col-lg-6">
+            <div class="box box-danger">
+                <div class="box-header no-border">
+                    <h4>Caminhos para arquivos de importação</h4>
+                    <h4>
+                        Nomes no arquivo que não são fixos, como datas por exemplo, devem ser substituidos por <b>*</b><br />
+                        Ex: <b>c:\User\seuusuario\Desktop\Meu_Arquivo_201906.txt</b><br />
+                        Para: <b>c:\User\seuusuario\Desktop\Meu_Arquivo_*.txt</b>
+                    </h4>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tarefa</th>
+                                <th>Caminho</th>
+                                <th>Nome Arquivo</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var imports in Model.Importacoes)
+                            {
+                                <tr data-id="@imports.Id">
+                                    <td><b>@imports.Tarefa</b></td>
+                                    <td><input type="text" value="@imports.CaminhoOrigem" class="form-control" /></td>
+                                    <td><input type="text" value="@imports.PadraoPesquisa" class="form-control" /></td>
+                                    <td style="display:flex; justify-content:space-around">
+                                        <button class="btn btn-primary" onclick="alterarImportacao(this)">Alterar</button>
+                                        <button class="btn btn-danger" onclick="excluiImportacao(this)">Excluir</button>
+                                    </td>
+                                </tr>
+
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h4>Links externos</h4>
+                    <h4>Atenção !!!</h4> Altere apenas se tiver plena certeza da necessidade de alterar o caminho.
+                </div>
+                <div class="box-body">
+
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Link</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var links in Model.Externos)
+                            {
+                                <tr data-id="@links.Id">
+                                    <td><b>@links.Titulo</b></td>
+                                    <td><input type="text" value="@links.Url" class="form-control" /></td>
+                                    <td style="display:flex; justify-content:space-around">
+                                        <button class="btn btn-primary" onclick="atualizarLinkExterno(this)">Alterar</button>
+                                        <button class="btn btn-danger" onclick="excluirLinkExterno(this)">Excluir</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    @*@if (!User.IsInRole(NivelAcesso.Especialista.ToString()))
+    {
+        <div class="col-lg-6">
+            <div class="box box-danger">
+                <div class="box-header">
+                    <h3 class="box-title">Faixas de Teds Por Equipe</h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Equipe</th>
+                                <th>Valor Inicial</th>
+                                <th>Valor Final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var faixas in Model.TedFaixasEquipe)
+                            {
+                                if (faixas.Equipe.ToUpper() != "PGP")
+                                {
+                                    <tr data-id="@faixas.Id">
+                                        <td style="vertical-align:middle"><b>@faixas.Equipe.ToUpper()</b></td>
+                                        <td>
+                                            <label>De</label>
+                                            <input type="text" value="@faixas.De" class="form-control valor-faixa" />
+                                        </td>
+                                        <td>
+                                            <label>Até</label>
+                                            <input type="text" value="@faixas.Ate" class="form-control valor-faixa" />
+                                        </td>
+                                        <td style="display:flex; justify-content:space-around; margin-top:10px;">
+                                            <button class="btn btn-primary" onclick="atualizarFaixaValorTed(this)">Alterar</button>
+                                            <button class="btn btn-danger" onclick="excluirFaixaValorTed(this)">Excluir</button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }*@
+    @*<div class="col-lg-12">
+            <div class="box box-danger">
+                <div class="box-header">
+                    <h4 style="text-align:center">Importações</h4>
+                </div>
+                <div class="box-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Tarefa</th>
+                                <th>Caminho Origem</th>
+                                <th>Ultima Execução</th>
+                                <th>Intervalo Execução</th>
+                                <th>Data Ultima Modificação</th>
+                                <th>Padrão Pesquisa</th>
+                                <th>Forma de Armazenamento</th>
+                                <th>Ultimo Arquivo</th>
+                                <th>Editar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>
+                                    <div class="dropdown-toggle">
+                                        <button type="button" id="btn-editar" class="btn btn-primary" style="border:0" data-target="#editar">
+                                            <i class="fa fa-edit icone-editar"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="tr1" class="table table-bordered">
+                                <td>
+                                    <div>
+                                        <input class="form-control" type="text" name="id" style="padding-bottom: 8px" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <input class="form-control" type="text" name="tarefa" style="width: 100%; padding-bottom: 8px" />
+                                </td>
+                                <td>
+                                    <input class="form-control" type="text" name="caminho-origem" style="width:100%; padding-bottom:8px" />
+                                </td>
+                                <td>
+                                    <div>
+                                        <input class="form-control" type="date" disabled name="ultima-exec" style="padding-bottom: 8px" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <input class="form-control" type="text" name="intervalo-execucao" style="padding-bottom: 8px" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <input class="form-control" type="text" disabled name="data-ultima-mod" style="padding-bottom: 8px" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <input class="form-control" type="text" name="padrao-pesquisa" style="padding-bottom: 8px" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <input class="form-control" type="text" name="forma-armazenamento" style="padding-bottom: 8px" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <input class="form-control" type="text" disabled name="ultimo-arquivo" style="padding-bottom: 8px" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#Salvar">
+                                        <i class="fa fa-save icone-salvar"></i>
+                                        Salvar
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="col-lg-12" style="margin-top:10px">
+                        <label>Email para Suporte:</label>
+                        <input type="text" name="email" id="email-1" class="form-control" style="width:20%; display:inline" />
+                        <button class="btn btn-primary">Salvar</button>
+                    </div>
+                    <div class="col-lg-12" style="margin-top:10px; margin-bottom:10px">
+                        <label>Email para Suporte:</label>
+                        <input type="text" name="email" id="email-2" class="form-control" style="width:20%; display:inline" />
+                        <button class="btn btn-primary">Salvar</button>
+                    </div>
+                    <div class="col-lg-12">
+                        <label>Email para Suporte:</label>
+                        <input type="text" name="email" id="email-3" class="form-control" style="width:20%; display:inline" />
+                        <button class="btn btn-primary">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+</div>
+
+@section Scripts{
+    <script>
+
+    function atualizarFaixaValorTed(ele) {
+        var tr = $(ele).closest('tr');
+        var tds = $(tr).children();
+
+        var id = $(tr).data('id');
+        var de = tds[1].childNodes[3].value.replace(/\./g, '');
+        var ate = tds[2].childNodes[3].value.replace(/\./g, '');
+
+        $.post('@Url.Action("AtualizarFaixaValorTed", "Configuracao")', { id, de, ate }, function (resp) {
+            resp = JSON.parse(resp);
+            if (resp.success)
+                if (resp.atualizar)
+                    core.notify.showNotify('Faixa de Ted alterada com suceso', 'success', 'top-center');
+                else
+                    core.notify.showNotify('Faixa de Ted excluida com suceso', 'success', 'top-center');
+        });
+    }
+
+    function excluirFaixaValorTed(ele) {
+
+        var tr = $(ele).closest('tr');
+        var tds = $(tr).children();
+
+        var id = $(tr).data('id');
+
+        $('#modal-confirm').find('#modal-confirm-text')
+            .text('Tem certeza que deseja excluir a faixa de valor para a equipe <b>' + tds[0].childNodes[0].textContent+'</b>\nIsso pode acarretar em serios danos nas exibição das TEDs para esta equipe.');
+        $('#modal-confirm').modal({ backdrop: 'static' });
+
+        $('#btn-delete-confirm').click(function () {
+            $.post('@Url.Action("ExcluirFaixaValorTed", "Configuracao")', { id }, function (resp) {
+                resp = JSON.parse(resp);
+                if (resp.success) {
+
+
+                    if (resp.excluir) {
+                        core.notify.showNotify('Faixa de Ted excluida com suceso', 'success', 'top - center');
+                        $(tr).remove();
+                    }
+                }
+                else {
+                    core.notify.showNotify('Erro ao exckuir Faixa de Ted', 'error', 'top - center');
+                }
+            });
+        });
+    }
+
+    function alterarImportacao(ele) {
+        var tr = $(ele).closest('tr');
+        var tds = $(tr).children();
+
+        var id = $(tr).data('id');
+        var caminho = tds[1].childNodes[0].value;
+        var padraoPesquisa = tds[2].childNodes[0].value;
+
+        $.post('@Url.Action("AtualizarImportacao","Configuracao")', { Id: id, CaminhoOrigem: caminho, PadraoPesquisa: padraoPesquisa },
+            function (resp) {
+                resp = JSON.parse(resp);
+                if (resp.success)
+                    if (resp.atualizar)
+                        core.notify.showNotify('Importacao alterada com suceso', 'success', 'top-center');
+                    else
+                        core.notify.showNotify('Importacao excluida com suceso', 'success', 'top-center');
+
+        });
+    }
+
+    function excluiImportacao(ele) {
+        var tr = $(ele).closest('tr');
+
+        var id = $(tr).data('id');
+        $.post('@Url.Action("ExcluirImportacao","Configuracao")', { id }, function (resp) {
+            resp = JSON.parse(resp);
+            if (resp.success) {
+                if (resp.excluir) {
+                    core.notify.showNotify('Importacao excluida com suceso', 'success', 'top-center');
+                    tr.remove();
+                }
+            }
+            else {
+                core.notify.showNotify('Erro ao excluir importação', 'error', 'top-center');
+            }
+
+        });
+    }
+
+    function atualizarLinkExterno(ele) {
+        var tr = $(ele).closest('tr');
+            var tds = $(tr).children();
+
+        var Id = $(tr).data('id');
+        var url = tds[1].childNodes[0].value;
+
+        $.post('@Url.Action("AtualizarLinkExterno","Configuracao")', { Id, url }, function (resp) {
+
+            resp = JSON.parse(resp);
+
+            if (resp.success) {
+                if (resp.atualizar) {
+                    core.notify.showNotify('Link alterado com suceso', 'success', 'top-center');
+                }
+            }
+            else {
+                core.notify.showNotify('Erro ao excluie link', 'error', 'top-center');
+            }
+        });
+
+    }
+
+    function excluirLinkExterno(ele) {
+        var tr = $(ele).closest('tr');
+
+        var id = $(tr).data('id');
+        $.post('@Url.Action("ExcluirLinkExterno","Configuracao")', { id }, function (resp) {
+            resp = JSON.parse(resp);
+            if (resp.success) {
+                if (resp.excluir) {
+                    core.notify.showNotify('Link excluido com suceso', 'success', 'top-center');
+                    tr.remove();
+                }
+            }
+            else {
+                core.notify.showNotify('Erro ao excluir Link', 'error', 'top-center');
+            }
+
+        });
+    }
+
+    $(document).ready(function () {
+        //Mascara dos campos
+        $('.valor-faixa').each(function (i, e) {
+
+            $(this).inputmask("(.999){+|1},99", {
+                //positionCaretOnClick: "radixFocus",
+                radixPoint: ",",
+                _radixDance: true,
+                numericInput: true,
+                placeholder: "0",
+                noshift: true,
+                definitions: {
+                    "0": {
+                        validator: "[0-9\uFF11-\uFF19]"
+                    }
+                }
+
+            });
+        });
+
+        //Coloca cabeçalho das tabelas ao centro
+        $('thead tr th').each(function () {
+            $(this).css('text-align', 'center');
+        });
+    })
+
+    </script>
+
+}

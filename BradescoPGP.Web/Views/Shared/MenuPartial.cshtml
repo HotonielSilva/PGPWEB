@@ -1,0 +1,158 @@
+﻿@using BradescoPGP.Common;
+@{
+    string path = Request.Path.ToLower();
+    string activeHome = string.Empty;
+    const string prefixURL = "/home";
+
+    #region Condições
+    if (path == $"{prefixURL}" || path == "/" || path == $"{ prefixURL}/redirecionarhome")
+        activeHome = "active";
+
+    var Equipe = ((System.Security.Claims.ClaimsIdentity)User.Identity).FindFirst("equipe").Value;
+
+    #endregion}
+<div class="row m-b-5">
+    <div class="col-lg-12 ">
+        <ul class="nav nav-pills bg-white custom-main-nav">
+            <li role="presentation" class="@activeHome">
+                <a href="@Url.Action("Index", "Home", new { area = "" })">
+                    Home
+                </a>
+            </li>
+
+            @*<li role="presentation" class="@Html.IsSelected(controllers: "Qualitativo", actions: "Index")">
+                    <a href="@Url.Action("Index", "Qualitativo", new { area = "" })">
+                        Qualitativo
+                    </a>
+                </li>*@
+
+            <li role="presentation" class="@Html.IsSelected(controllers: "CarteiraCliente", actions: "Index")">
+                <a href="@Url.Action("Index", "CarteiraCliente", new { area = "" })">
+                    Clusterização
+                </a>
+            </li>
+
+            @if (Equipe == "TOP TIER" || Equipe == "PGP")
+            {
+                <li role="presentation" class="@Html.IsSelected(controllers: "CarteiraClienteTopTier", actions: "Index")">
+                    <a href="@Url.Action("Index", "CarteiraClienteTopTier", new { area = "" })">
+                        Clusterização Top Tier
+                    </a>
+                </li>
+            }
+
+            @*<li role="presentation" class="@Html.IsSelected(controllers: "Cockpit", actions: "Index")">
+                    <a href="@Url.Action("Index", "Cockpit", new { area = "" })">
+                        Cockpit
+                    </a>
+                </li>*@
+
+            <li role="presentation" class="@Html.IsSelected(controllers: "TEDs", actions: "Index")">
+                <a href="@Url.Action("Index", "TEDs", new { area = "" })"> TED's</a>
+                @if (ViewBag.TedsNovas != null && ViewBag.TedsNovas > 0)
+                {
+                    <span class="label label-danger widget-alert" id="widget-ted">@ViewBag.TedsNovas</span>
+                }
+            </li>
+            <li role="presentation" class="@Html.IsSelected(controllers: "Vencimento", actions: "Index")">
+
+                <a href="@Url.Action("Index", "Vencimento", new { area = "" })">Vencimentos</a>
+
+                @if (ViewBag.VencimentosCount != null && ViewBag.VencimentosCount > 0)
+                {
+                    <span class="label label-danger widget-alert" id="widget-vencimento">@ViewBag.VencimentosCount</span>
+                }
+            </li>
+            <li role="presentation" class="@Html.IsSelected(controllers: "Pipeline", actions: "Index")">
+                <a href="@Url.Action("Index", "Pipeline", new { area = "" })">
+                    Pipelines
+                </a>
+                @if (ViewBag.PipelinesCount != null && ViewBag.PipelinesCount > 0)
+                {
+                    <span class="label label-danger widget-alert" id="widget-pipeline">@ViewBag.PipelinesCount</span>
+                }
+            </li>
+
+            <li role="presentation" class="@Html.IsSelected(controllers: "AplicacaoResgate", actions: "Index")">
+                <a href="@Url.Action("Index", "AplicacaoResgate", new { area = "" })">
+                    Aplicação / Resgate
+                    @if (ViewBag.AplicacaoResgateCount != null && ViewBag.AplicacaoResgateCount > 0)
+                    {
+                        <span class="label label-danger widget-alert" id="widget-aplic-resg">@ViewBag.AplicacaoResgateCount</span>
+                    }
+                </a>
+            </li>
+
+            @{
+            var controllersPortabilidade = "Home,GerencialCliente,GerencialEspecialista,GerencialMotivoSubmotivo,GerencialIndicadoresRanking,GerencialIndicadoresEntidade,Operacional,ParametroMotivoSubMotivo,ParametroStatusSubStatus";
+            var controllersGerencial = "GerencialCliente,GerencialEspecialista,GerencialMotivoSubmotivo,GerencialIndicadoresRanking,GerencialIndicadoresEntidade";
+        }
+        <li class="dropdown @Html.IsSelected(controllersPortabilidade,"Index",area:"Portabilidade")" style="color:white">
+            <a href="#" data-toggle="dropdown" role="button">
+                Portabilidade
+            </a>
+            <ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">
+                <li class="@Html.IsSelected(controllers:"Home", cssClass:"sub-active")">
+                    @Html.ActionLink("Visão Consolidada", "Index", "Home", new { area = "Portabilidade" }, new { @style = "display:block; margin-top: 5px; margin-bottom: 5px;" })
+                </li>
+                @if (!User.IsInRole(NivelAcesso.Especialista.ToString()))
+                {
+                    <!-- Gerencial-->
+                    <li class="dropdown-submenu @Html.IsSelected(controllers:controllersGerencial, cssClass:"sub-active")">
+                        <a href="#" class="subitem">Gerencial</a>
+                        <ul class="dropdown-menu">
+                            <li class="subitem @Html.IsSelected(controllers:"GerencialCliente", cssClass:"sub-active")">
+                                @Html.ActionLink("Cliente", "Index", "GerencialCliente", new { area = "Portabilidade" }, null)
+                            </li>
+                            <li class="subitem @Html.IsSelected(controllers:"GerencialEspecialista", cssClass:"sub-active")">
+                                @Html.ActionLink("Especialista", "Index", "GerencialEspecialista", new { area = "Portabilidade" }, null)
+                            </li>
+                            <li class="subitem @Html.IsSelected(controllers:"GerencialMotivoSubmotivo", cssClass:"sub-active")">
+                                @Html.ActionLink("Motivo", "Index", "GerencialMotivoSubmotivo", new { area = "Portabilidade" }, null)
+                            </li>
+                            <li class="dropdown-submenu @Html.IsSelected(controllers:"GerencialIndicadoresRanking,GerencialIndicadoresRanking", cssClass:"sub-active")">
+                                <a href="#">Indicadores</a>
+                                <ul class="dropdown-menu @Html.IsSelected(controllers:"GerencialIndicadoresRanking", cssClass:"sub-active")">
+                                    <li class="subitem @Html.IsSelected(controllers:"GerencialIndicadoresRanking", cssClass:"sub-active")">
+                                        @Html.ActionLink("Ranking de Especialistas", "Index", "GerencialIndicadoresRanking", new { area = "Portabilidade" }, null)
+                                    </li>
+                                    <li class="subitem @Html.IsSelected(controllers:"GerencialIndicadoresEntidade", cssClass:"sub-active")">
+                                        @Html.ActionLink("Entidade Solicitante", "Index", "GerencialIndicadoresEntidade", new { area = "Portabilidade" }, null)
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                }
+                <li class="@Html.IsSelected(controllers:"Operacional", cssClass:"sub-active")">
+                    @Html.ActionLink("Atendimento", "Index", "Operacional", new { area = "Portabilidade" }, new { @style = "display:block; margin-top: 5px; margin-bottom: 5px;" })
+                </li>
+                @if (User.IsInRole(NivelAcesso.Master.ToString()))
+                {
+                    <!-- Parâmetros -->
+                    <li class="dropdown-submenu @Html.IsSelected(controllers: "ParametroMotivoSubMotivo,ParametroStatusSubStatus", cssClass: "sub-active")">
+                        <a class="subitem" href="#">Parâmetros</a>
+                        <ul class="dropdown-menu">
+                            <li class="subitem @Html.IsSelected(controllers: "ParametroMotivoSubMotivo", cssClass: "sub-active")">
+                                @Html.ActionLink("Motivo/Submotivo", "Index", "ParametroMotivoSubMotivo", new { area = "Portabilidade" }, null)
+                            </li>
+                            <li class="subitem @Html.IsSelected(controllers: "ParametroStatusSubStatus", cssClass: "sub-active")">
+                                @Html.ActionLink("Status/SubStatus", "Index", "ParametroStatusSubStatus", new { area = "Portabilidade" }, null)
+                            </li>
+                        </ul>
+                    </li>
+                }
+            </ul>
+        </li>
+
+            @if (User.IsInRole(NivelAcesso.Especialista.ToString()))
+            {
+                <li role="presentation" class="@Html.IsSelected(controllers: "Agenda", actions: "Index")">
+                    <a href="@Url.Action("Index", "Agenda", new { area = "" })">
+                        Agenda
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>

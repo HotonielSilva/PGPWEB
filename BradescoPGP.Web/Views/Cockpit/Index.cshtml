@@ -1,0 +1,224 @@
+﻿@model List<BradescoPGP.Web.Models.CockpitViewModel>
+@using BradescoPGP.Common
+@{ 
+    var isEspecialista = User.IsInRole(NivelAcesso.Especialista.ToString());
+}
+<div class="box box-danger m-b-5">
+    <div class="box-header">
+        <h3 class="box-title">Busca Rápida</h3>
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="box-body with-border">
+        <div class="form-inline custom-search-inputs">
+            <div class="row relative">
+                <form action="@Url.Action("Index","Cockpit")" id="form-pesquisa-cockpit" method="get">
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <br />
+                        <div class="form-group">
+                            <label for="especialista">Especialista</label>
+                            @Html.DropDownList("especialista", (List<SelectListItem>)ViewBag.Especialistas, new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <br />
+                        <label for="agencia">Agencia</label>
+                        <input type="number" class="form-control" value="@Request.Params.Get("Agencia")" id="agencia" name="Agencia" />
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <br />
+                        <label for="agencia">Conta</label>
+                        <input type="number" class="form-control" value="@Request.Params.Get("Conta")" id="conta" name="Conta" />
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <br />
+                        <label for="comentario">Comentário</label>
+                        <input type="text" value="@Request.Params.Get("comentario")" class="form-control" id="comentario" name="comentario" />
+                    </div>
+                    @if (!User.IsInRole(NivelAcesso.Especialista.ToString()))
+                    {
+                        <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                            <br />
+                            <div class="form-group">
+                                <label for="equipe">Equipe</label>
+                                @Html.DropDownList("equipe", (List<SelectListItem>)ViewBag.Equipes, new { @class = "form-control" })
+                            </div>
+                        </div>
+                    }
+
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <br />
+                        <label for="de">De</label>
+                        <input type="date" class="form-control" value="@Request.Params.Get("De")" id="de" name="De" />
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <br />
+                        <label for="ate">Até</label>
+                        <input type="date" class="form-control" value="@Request.Params.Get("Ate")" id="ate" name="Ate" />
+                    </div>
+                    <div class="col-lg-2 col-md-1 col-sm-12 col-xs-12 m-t-10 pull-right">
+                        <div>
+                            <button type="submit" id="btn-search" class="btn btn-danger m-t-10 ">Buscar</button>
+                            @Html.ActionLink("Limpar Filtro", "Index", "Cockpit", null, new { @class = "btn btn-default m-t-10" })
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box no-border">
+            <div class="box-header no-border">
+                <div class="pull-right"><small>Data da última importação: @ViewBag.UltimaImportacao</small></div>
+            </div>
+            <div class="box-body">
+                <table id="table-cockpit" class="table table-hover display">
+                    <thead>
+                        <tr>
+                            <th>Nome Cliente</th>
+                            <th>Agencia</th>
+                            <th>Conta</th>
+                            <th>CPF</th>
+                            <th>Data Contato</th>
+                            <th>Observacao</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cok in Model.OrderBy(o => o.NomeCliente))
+                        {
+                            <tr id="@cok.Id" ondblclick="redirecionarHome(this)">
+                                <td>@cok.NomeCliente</td>
+                                <td>@cok.CodigoAgencia</td>
+                                <td>@cok.Conta</td>
+                                <td>@cok.CPF</td>
+                                <td>@cok.DataContato.ToShortDateString()</td>
+                                <td>
+                                    <div style="height:70px; width: 100%; overflow-y: scroll">@cok.Observacao</div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (Model.Any())
+                {
+                <a class="btn btn-sm btn-success" href="#" onclick="exportarExcel()"> <i class="fa fa-table"></i> Exportar Excel</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        function redirecionarHome(ele) {
+            $(ele).css({ 'background-color': '#f69595'})
+            var agencia = $($(ele).children()[1]).text()
+            var conta = $($(ele).children()[2]).text()
+            window.location.href = '@Url.Action("RedirecionarHome","Home")?agencia=' + agencia + '&conta=' + conta;
+        }
+
+        function exportarExcel() {
+            var comentario = '@Request.Params.Get("Comentario")';
+            var de = '@Request.Params.Get("De")';
+            var ate = '@Request.Params.Get("Ate")';
+            var equipe = '@Request.Params.Get("Equipe")';
+
+            var link = `@Url.Action("ExportarExcel", "Cockpit")?equipe=${equipe}&comentario=${comentario}&de=${de}&ate=${ate}`;
+            window.open(link, '_blank');
+        }
+
+        $(document).ready(() => {
+
+            core.home.efeitoSelecaoLinha('#table-cockpit');
+
+            //DataTable
+            $('#table-cockpit').DataTable({
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Foram encontrados _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                },
+                scrollColapse: true,
+                lengthMenu: [25,50,100],
+                scrollX: true,
+                fixedHeader: true,
+                searching: false,
+                columns: [
+                    { data: 'NomeCliente' },
+                    { data: 'CodigoAgencia' },
+                    { data: 'Conta' },
+                    {data: 'CPF'},
+                    {
+                        data: 'DataContato',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data;
+                            }
+                            else {
+                                return moment(data, 'DD/MM/YYYY').toDate();
+                            }
+                        }},
+                    {data: 'Observacao'},
+                ],
+                columnDefs: [
+                    { width: '250px', targets: 0 },
+                    { width: '69px', targets: 1 },
+                    { width: '69px', targets: 2 },
+                    { width: '100px', targets: 3 },
+                    { width: '100px', targets: 4 },
+                ],
+            });
+
+            //Pesquisa Comentario
+            $("#form-pesquisa-cockpit").submit(function (e) {
+                var de = $('#de').val();
+                var ate = $('#ate').val();
+                var especialista = $('#especialista').val();
+                var equipe = $('#equipe').val();
+                var agencia = $('#agencia').val();
+                var conta = $('#conta').val();
+                var comentario = $('#comentario').val();
+
+                if ('@isEspecialista' == 'False' && especialista != '' && equipe != '') {
+                    e.preventDefault();
+                    core.notify.showNotify('Não possível pesquisar por especialista e equipe', 'info', 'top-center');
+                    return;
+                }
+
+                if (de > ate) {
+                    e.preventDefault();
+                    core.notify.showNotify('O intervalo de datas não corresponde a um range valido, o valor De deve ser menor do que o valor Até', 'warning','top-center')
+                    return;
+                }
+
+                if (conta != "" && agencia == "") {
+                    e.preventDefault();
+                    core.notify.showNotify('Não é possível filtrar apenas por conta.');
+                    return;
+                }
+
+                if (agencia == "" && conta == "" && comentario == "") {
+                    e.preventDefault();
+                    core.notify.showNotify('Para fazer uma pesquisa é preciso informar pelo menos agencia e conta, ou um comentario', 'info', 'top-center');
+                    return;
+                }
+
+            });
+        })
+    </script>
+}

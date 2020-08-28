@@ -1,0 +1,30 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Secure</title>
+</head>
+<body>
+    <div>
+        Olá @User.Identity.Name <br />
+
+        <ul>
+
+            @foreach (var claim in ((System.Security.Claims.ClaimsIdentity)User.Identity).Claims)
+            {
+                <li>@claim.Type : @claim.Value</li>
+
+            }
+        </ul>
+
+
+        <a href="@Url.Action("Logoff", "Conta")">Sair</a>
+    </div>
+</body>
+</html>

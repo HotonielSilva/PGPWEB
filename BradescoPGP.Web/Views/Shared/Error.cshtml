@@ -1,0 +1,28 @@
+﻿@model BradescoPGP.Web.Models.ErrorViewModel
+
+@{
+    ViewBag.Title = "Erro";
+    Layout = null;
+}
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>@ViewBag.Title</title>
+
+    @Styles.Render("~/Content/css")
+</head>
+<body>
+    <div class="container">
+
+        <div class="jumbotron">
+            <h1 class="text-danger">@Model.Status</h1>
+            <h2 class="text-danger">@Html.Raw(Model.Mensagem)</h2>
+        </div>
+        <small>@Html.Raw(Model.Endereco)</small>
+
+    </div>
+</body>
+</html>
+
+
+

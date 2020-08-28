@@ -1,0 +1,316 @@
+﻿@using BradescoPGP.Common
+@{
+    var listaDeEspecilalista = new List<string>();
+}
+<div class="box box-danger m-b-5">
+    <div class="box-header">
+        <h3 class="box-title">Busca Rápida</h3>
+        <div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                <i class="fa fa-minus"></i>
+            </button>
+        </div>
+    </div>
+    <form action="@Url.Action("Index", "TEDs")" id="form-pesquisa-ted" method="get">
+        <div class="box-body with-border">
+            <div class="form-inline custom-search-inputs">
+                <div class="row relative">
+                    <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                        <div class="form-group">
+                            <label for="Especialista">Especialista</label>
+                            @Html.DropDownList("Especialista", ViewBag.Especialistas as List<SelectListItem>, new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="form-group">
+                            <label for="Agencia">Agencia</label>
+                            <input type="number" name="Agencia" id="Agencia" value="@(ViewBag.filtroAtual?.Agencia)" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="form-group">
+                            <label for="Conta">Conta</label>
+                            <input type="number" name="Conta" id="Conta" value="@(ViewBag.filtroAtual?.Conta)" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <label for="Situacao">Situação</label><br />
+                        @Html.DropDownList("Situacao", ViewBag.Situacao as List<SelectListItem>, new { @class = "form-control", @style = "width:100%" })
+
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="form-group">
+                            <label for="De">De&nbsp;</label>
+                            <input type="date" id="De" name="De" value="@(ViewBag.filtroAtual?.De?.ToString("yyyy-MM-dd"))" class="form-control" /><br />
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="form-group">
+                            <label for="Ate">Até</label>
+                            <input type="date" id="Ate" name="Ate" value="@(ViewBag.filtroAtual?.Ate?.ToString("yyyy-MM-dd"))" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row relative">
+                    @if (!User.IsInRole(NivelAcesso.Especialista.ToString()))
+                    {
+                        <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                            <div class="form-group">
+                                <label for="equipe">Equipe</label>
+                                @Html.DropDownList("equipe", (List<SelectListItem>)ViewBag.Equipes, new { @class = "form-control" })
+                            </div>
+                        </div>
+                    }
+                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12 pull-right">
+                        <br />
+                        <div class="pull-right">
+                            <button class="btn btn-danger">Buscar</button>
+                            <a data-toggle="tooltip" data-placement="top" title="Teste" href="@Url.Action("Index", "TEDs")" class="btn btn-default">
+                                Limpar filtros
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<div class="box no-border m-t-1">
+    <div class="box-header no-border">
+        <a href="@Url.Action("Graficos",new { Especialista = Request.Params.Get("Especialista"), 
+                Equipe = Request.Params.Get("Equipe"), De = Request.Params.Get("De") ,Ate = Request.Params.Get("Ate")})" class="btn btn-gradient"><i class="fa fa-bar-chart-o"></i> Graficos</a>
+        <div class="pull-right"><small>Data da última importação: @ViewBag.UltimaImportacao</small></div>
+    </div>
+    <div class="box-body">
+        <table id="tabela-teds" class="table table-hover display">
+            <thead>
+                <tr>
+                    <th>Especialista</th>
+                    <th>Agencia</th>
+                    <th>Conta</th>
+                    <th>Cliente</th>
+                    <th>Cpf/Cnpj</th>
+                    <th>Data</th>
+                    <th>Valor</th>
+                    <th>Situação</th>
+                    <th>Motivo</th>
+                    <th>Valor Aplicado</th>
+                    <th class="text-center">Resetar Status</th>
+                    <th class="text-center">Editar</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <a class="btn btn-sm btn-success none" href="#" id="btn-exportar-excel" onclick="exportarExcel()"> <i class="fa fa-table"></i> Exportar Excel</a>  
+    </div>
+</div>
+
+@section scripts{
+
+    <script>
+
+        function redirecionarHome(ele) {
+            $(ele).css({ 'background-color': '#f69595' });
+            var agencia = $(ele).data("agencia");
+            var conta = $(ele).data("conta");
+            window.location.href = '@Url.Action("RedirecionarHome","Home")?agencia=' + agencia + '&conta=' + conta;
+        };
+
+        var filtros = {
+            especialista : '@Request.Params.Get("especialista")',
+            agencia : '@Request.Params.Get("agencia")',
+            conta : '@Request.Params.Get("conta")',
+            situacao : '@Request.Params.Get("situacao")',
+            de : '@Request.Params.Get("de")',
+            ate : '@Request.Params.Get("ate")',
+            equipe : '@Request.Params.Get("equipe")'
+        }
+
+        var params = `?especialista=${filtros['especialista']}&agencia=${filtros['agencia']}&conta=${filtros['conta']}&equipe=${filtros['equipe']}&situacao=${filtros['situacao']}&de=${filtros['de']}&ate=${filtros['ate']}`;
+       
+        function exportarExcel() {
+            var link = `@Url.Action("ExportarExcel", "TEDs")${params}`;
+            window.open(link, '_blank');
+        }
+
+        $(document).ready(function () {
+
+            core.home.efeitoSelecaoLinha('#tabela-teds');
+
+            var urlLoadDados = `@Url.Action("CarregarDados")${params}`;
+            
+            var table = $('#tabela-teds').DataTable({
+                language: {
+                    "lengthMenu": "Mostrar _MENU_ resultados por página",
+                    "zeroRecords": "Nenhum registro encontrado",
+                    "info": "Foram encontrados _TOTAL_ resultados",
+                    "infoFiltered": "(A pesquisa retornou _TOTAL_ resultados do total de _MAX_)",
+                    "infoEmpty": "Nehum dado disponivel",
+                    "oPaginate": {
+                        "sNext": "Próximo",
+                        "sPrevious": "Anterior",
+                        "sFirst": "Primeiro",
+                        "sLast": "Último"
+                    },
+                },
+                fixedHeader: true,
+                searching: false,
+                lengthMenu: [25, 50, 100],
+                order: [5, 'desc'],
+                processing : true,
+                serverSide: true,
+                rowId: 'Id',
+                ajax: {
+                    url: urlLoadDados,
+                    type: 'post'
+                },
+                columns: [
+                    { data: 'NomeConsultor' },
+                    { data: 'Agencia' },
+                    { data: 'Conta' },
+                    { data: 'NomeCliente' },
+                    //{ data: 'CpfCnpj' },
+                    {
+                        data: 'CpfCnpj',
+                        render: function (data) {
+                            if (data == null || data == '') return '';
+
+                            var res = data.substring(14, 15);
+                            if (res == '0') {
+                                return 'PF';
+                            }
+                            else {
+                                return 'PJ';
+                            }
+                        }
+                    },
+                    {
+                        data: 'Data',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data != null ? moment(data).format('L') : data;
+                            }
+                            else {
+                                return data;
+                            }
+                        }
+                    },
+                    {
+                        data: 'Valor',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return data != null ? data.toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' }) : data;
+                            }
+                            else {
+                                return data;
+                            }
+                        }
+                    },
+                    { data: 'Status' },
+                    {
+                        data: 'MotivoTed',
+                        render: function (data, type, row) {
+                            if (type == 'display') {
+                                return !data ? row.Motivo : data;
+                            } else {
+                                return data;
+                            }
+                        }
+                    },
+                    {
+                        data: 'ValorAplicado',
+                        render: function (data, type) {
+                            if (type == 'display') {
+                                return !isNaN(data) ?
+                                    data > 0 ? data.toLocaleString('pt-BR', { currency: 'BRL', style: 'currency' }) : '' : "";
+                            }
+                            else {
+                                return data;
+                            }
+                        }
+                    },
+                    {
+                        data: 'Resetar Status',
+                        className : 'text-center',
+                        defaultContent: `<button onclick="core.home.resetStatus(this, '@Url.Action("ResetarStatus","Teds")', 'TED')" style="background-color:unset;border:unset"
+                                                title="Resetar Status para Em Branco" class="btn btn-default">
+                                            <i class="fa fa-undo"></i>
+                                        </button>`,
+                        orderable: false
+                    },
+                    {
+                        data: 'Editar',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            return `<button class="btn-edit-pencil" onclick="core.home.getTed('@Url.Action("ObterTED", "TEDs")?id=${row.Id}', '@Url.Action("AtualizarTED", "TEDs")','@Url.Action("AdicionarProduto", "TEDs")','@Url.Action("ExcluirAplicacao","TEDs")', '@Request.Url.PathAndQuery')">
+                                        <i class="fa fa-pencil" style="color:red"></i>
+                                    </button>`;
+                        }
+                    }
+                ],
+                createdRow: function( row, data, dataIndex ) {
+                    $(row).attr('data-conta', data.Conta);
+                    $(row).attr('data-agencia', data.Agencia);
+                  }
+            });
+
+
+            $('form').submit(function (e) {
+
+                var especialista = $('#Especialista').val();
+                var agencia = $('#Agencia').val();
+                var conta = $('#Conta').val();
+                var situacao = $('#Situacao').val();
+                var de = $('#De').val();
+                var ate = $('#Ate').val();
+                var equipe = $('#Equipe').val();
+
+                if (conta == "" && agencia == "" && especialista == "" && de == "" && ate == "" && situacao == "" && equipe == "") {
+                    e.preventDefault();
+                    core.notify.showNotify("Para realizar um filtro preencha os campos desejados abaixo", 'warning', 'top-center');
+                    return;
+                }
+
+                if (conta != "" && agencia == "" ) {
+                    e.preventDefault();
+                    core.notify.showNotify("Não é possivel filtras apenas por Conta, preencha Agencia e Conta ou apenas Agencia", 'warning', 'top-center');
+                    return;
+                }
+
+                if (de > ate) {
+                    e.preventDefault();
+                    core.notify.showNotify("O range de data está inválido, o valor do campo <b>De</b> é maior do que o campo <b>Até</b>", 'warning', 'top-center');
+                    return;
+                }
+
+                var emptyinputs = $(this).find('input').filter(function () {
+                    return !$.trim(this.value).length;  // get all empty fields
+                }).prop('disabled', true);
+
+                var noneSelecteds = $(this).find('select').filter(function () {
+                    return !$.trim(this.value).length;
+                }).prop('disabled', true);
+
+            });
+
+            $(document).on('dblclick', '#tabela-teds tr', function () {
+                redirecionarHome(this);
+            });
+
+            table.on('xhr', function (e, settings, json) {
+                if (json.recordsTotal > 0) {
+                    $('#btn-exportar-excel').removeClass('none');
+                } else {
+                    $('#btn-exportar-excel').addClass('none');
+                }
+           });
+
+            $('.dataTables_processing').text('Processando...');
+        });
+    </script>
+
+}
+

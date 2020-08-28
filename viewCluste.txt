@@ -1,0 +1,19 @@
+USE [BD_PGP_WEB_DESENV]
+GO
+
+/****** Object:  View [dbo].[vwClusterTopTier]    Script Date: 08/07/2020 17:01:54 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE VIEW [dbo].[vwClusterTopTier]
+AS
+SELECT        TOP (100) PERCENT dbo.Encarteiramento.CONSULTOR, dbo.Clusterizacoes.AGENCIA, dbo.Clusterizacoes.CONTA, dbo.Clusterizacoes.CPF_CNPJ, dbo.Clusterizacoes.GER_RELC, dbo.Clusterizacoes.ACAO, 
+                         dbo.Clusterizacoes.NIVEL_DESENQ_FX_RISCO, dbo.Clusterizacoes.PERFIL_API, dbo.Clusterizacoes.SALDO_TOTAL, dbo.Clusterizacoes.SALDO_PREVIDENCIA, dbo.Clusterizacoes.ACAO_PRINCIPAL
+FROM            dbo.Clusterizacoes INNER JOIN
+                         dbo.Encarteiramento ON dbo.Clusterizacoes.AGENCIA = dbo.Encarteiramento.Agencia AND dbo.Clusterizacoes.CONTA = dbo.Encarteiramento.Conta
+WHERE        (dbo.Clusterizacoes.AREA LIKE 'TOP TIER%') AND (dbo.Encarteiramento.AREA LIKE 'TOP TIER%')
+ORDER BY dbo.Clusterizacoes.SALDO_TOTAL DESC
+GO

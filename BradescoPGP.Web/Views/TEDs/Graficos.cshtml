@@ -1,0 +1,378 @@
+﻿@model BradescoPGP.Web.Models.Graficos.TedGraficos
+    @{ 
+        var temQuantidadeTed = Model.GraficoQuantidadeTed.Dados.data.Any(r => r > 0);
+        var temValoresTeds = Model.GraficoValorTed.Dados.data.Any(r => r > 0);
+        var temQuantidadeStatus = Model.GraficoQuantidadeStatus.Dados.data.Any(r => r > 0);
+        var temValorStatus = Model.GraficoValorStatus.Dados.data.Any(r => r > 0);
+        var temAplicacaoProdutos = Model.GraficoAplicacaoProduto.Dados.labels.Any();
+        var temMotivoNaoAplicacao = Model.GraficoMotivoNaoAplicacao.Dados.labels.Any();
+    }
+<div class="box">
+    <div class="box-header with-border">
+        <form action="@Url.Action("Graficos")" id="form-pesquisa">
+            <div class="row relative">
+
+                <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 m-b-10">
+                    <div class="form-group">
+                        <label for="Especialista">Especialista</label>
+                        @Html.DropDownList("Especialista", ViewBag.Especialistas as List<SelectListItem>, new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-2 col-sm-6 col-xs-12 m-b-10">
+                    <label for="equipe">Equipe</label>
+                    @Html.DropDownList("equipe", (List<SelectListItem>)ViewBag.Equipes, new { @class = "form-control" })
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6 col-xs-12">
+                    <div class="md-form">
+                        <label for="onlyDatePicker">De:</label>
+                        <input placeholder="dd/mm/aaaa" type="text" autocomplete="off" name="De" id="De" class="form-control onlyDatePicker">
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-6 col-xs-12">
+                    <div class="md-form">
+                        <label for="onlyDatePicker">Ate:</label>
+                        <input placeholder="dd/mm/aaaa" type="text" autocomplete="off" name="Ate" id="Ate" class="form-control onlyDatePicker">
+                    </div>
+                </div>
+                <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
+                    <br />
+                    <button type="submit" class="btn btn-danger">
+                        Buscar
+                    </button>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </form>
+    </div>
+    <div class="box-body">
+        <div class="row" style="display:flex; flex-wrap:wrap">
+            <div class="col-lg-6 m-b-5 relative">
+                <h4 class="text-center">Quantidade de TEDs</h4>
+                @if (temQuantidadeTed)
+                {
+                    <div id="grafico1-quantidade" class="d-flex" style="justify-content:center"></div>
+                }
+                else
+                {
+                    <h5 class="text-center">Nenhum resultado encontrado</h5>
+                }
+                </div>
+            <div class="col-lg-6 m-b-5 relative">
+                <h4 class="text-center">Valor de TEDs</h4>
+                @if (temValoresTeds)
+                {
+                    <div id="grafico1-valor"></div>
+                }
+                else
+                {
+                    <h5 class="text-center">Nenhum resultado encontrado</h5>
+                }
+            </div>
+        </div>
+        <hr />
+        <div class="row" style="display:flex; align-items:stretch; flex-wrap:wrap">
+
+            <div class="col-lg-6 m-b-5">
+                <h4 class="text-center">Quantidade por Status</h4>
+                @if (temQuantidadeStatus)
+                {
+                    <div id="grafico2-quantidade" class="d-flex" style="justify-content:center"></div>
+                }
+                else
+                {
+                    <h5 class="text-center">Nenhum resultado encontrado</h5>
+                }
+            </div>
+            <div class="col-lg-6 m-b-5">
+                <h4 class="text-center">Volumes por Status</h4>
+                @if (temValorStatus)
+                {
+                    <div id="grafico2-valor" class="d-flex" style="justify-content:center"></div>
+                }
+                else
+                {
+                    <h5 class="text-center">Nenhum resultado encontrado</h5>
+                }
+            </div>
+            
+
+        </div>
+        <hr />
+        <div class="row" style="display:flex; align-items:stretch; flex-wrap:wrap">
+            <div class="col-lg-6">
+                <h4 class="text-center">Aplicações por Produtos</h4>
+                @if (temAplicacaoProdutos)
+                {
+                    <div id="myChart3" class="d-flex" style="justify-content:center"></div>
+                }
+                else
+                {
+                    <h5 class="text-center">Nehum resultado encontrado</h5>
+                }
+                </div>
+            <div class="col-lg-6 ">
+                <h4 class="text-center">Motivo de Não Aplicações</h4>
+                @if (temMotivoNaoAplicacao)
+                {
+                    <div id="myChart4" class="d-flex" style="justify-content:center"></div>
+                }
+                else
+                {
+                    <h5 class="text-center">Nenhum resultado encontrado</h5>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts{
+    <script>
+
+        $('.onlyDatePicker').datetimepicker({format:'DD/MM/YYYY', locale: 'pt-br'});
+
+
+        $(document).ready(function () {
+            //Grafico 1 Quantidade
+            var optionsQuantidade = {
+                chart: {
+                    width: '500px',
+                    type: 'bar'
+                },
+                colors: ['#2980b9'],
+                dataLabels: {
+                    enabled: false,
+                },
+                series: [
+                    {
+                        name: 'Quantidade',
+                        data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.GraficoQuantidadeTed.Dados.data))
+                    }
+
+                ],
+                xaxis: {
+                    categories: ["Total", "Finalizado", "Não Tratado", "Tratando"]
+                },
+                legend: {
+                    show: false,
+                }
+            }
+            var chart1 = new ApexCharts(document.querySelector("#grafico1-quantidade"), optionsQuantidade);
+            chart1.render();
+
+            //Valor
+            var optionsValor = {
+                chart: {
+                    width: '500px',
+                    type: 'bar'
+                },
+                colors: ['#8444bf'],
+                dataLabels: {
+                    enabled: false,
+                },
+                tooltip: {
+                    enabled: true,
+                    y: {
+                        formatter: function (title, tooltip) {
+                            var series = tooltip['series'];
+                            var serieIndex = tooltip['seriesIndex'];
+                            var dataPoint = tooltip['dataPointIndex'];
+
+                            return series[serieIndex][dataPoint].toLocaleString('pt-BR', {style:'currency', currency: 'BRL'});
+                        },
+                    }
+                },
+                series: [
+                    {
+                        name: 'Valor',
+                        data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.GraficoValorTed.Dados.data))
+                    }
+
+                ],
+                xaxis: {
+                    categories: ["Total", "Finalizado", "Não Tratado", "Tratando"]
+                },
+                legend: {
+                    show: true,
+                }
+            }
+            var chart1Valor = new ApexCharts(document.querySelector("#grafico1-valor"), optionsValor);
+            chart1Valor.render();
+
+            //Grafico 2 Quantidade
+            var optionsQuantidade2 = {
+                chart: {
+                    width: '500px',
+                    type: 'bar'
+                },
+                colors: ['#e66767'],
+                dataLabels: {
+                    enabled: false,
+                    
+                },
+                series: [{
+                    name: 'Quantidade',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.GraficoQuantidadeStatus.Dados.data))
+                }],
+                xaxis: {
+                    categories: ["Finalizado", "Aplicado", "Não Aplicado"]
+                }
+            }
+
+            var chart = new ApexCharts(document.querySelector("#grafico2-quantidade"), optionsQuantidade2);
+
+            chart.render();
+
+            //Grafico 2 Valor
+            var optionsValor2 = {
+                chart: {
+                    width: '500px',
+                    type: 'bar'
+                },
+                colors: ['#ac6'],
+                dataLabels: {
+                    enabled: false,
+                },
+                series: [{
+                    name: 'Valor',
+                    data: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.GraficoValorStatus.Dados.data))
+                }],
+                tooltip: {
+                    enabled: true,
+                    y: {
+                        formatter: function (title, tooltip) {
+                            var series = tooltip['series'];
+                            var serieIndex = tooltip['seriesIndex'];
+                            var dataPoint = tooltip['dataPointIndex'];
+
+                            return series[serieIndex][dataPoint].toLocaleString('pt-BR', {style:'currency', currency: 'BRL'});
+                        },
+                    }
+                },
+                xaxis: {
+                    categories: ["Finalizado", "Aplicado", "Não Aplicado"]
+                }
+
+
+            }
+
+            var chart = new ApexCharts(document.querySelector("#grafico2-valor"), optionsValor2);
+
+            chart.render();
+
+
+            //Grafico 3
+
+            var colors = ['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#e74c3c', '#25CCF7', '#F8EFBA', '#82589F', '#FEA47F', '#3B3B98', '#0fb9b1', '#26de81'];
+            var labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.GraficoAplicacaoProduto.Dados.labels)); 
+
+            var chartColors = [];
+
+            labels.forEach(function (va, ind) {
+                chartColors.push(colors[ind]);
+            });
+
+            var options = {
+                chart: {
+                    width: '500px',
+                    type: 'pie',
+                },
+                colors: chartColors,
+                dataLabels: {
+                    enabled: false,
+                },
+                labels: labels,
+                series: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.GraficoAplicacaoProduto.Dados.series)),
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            }
+
+            var chart = new ApexCharts(
+                document.querySelector("#myChart3"),
+                options
+            );
+
+            chart.render();
+
+            //Grafico 4
+
+            var chartLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.GraficoMotivoNaoAplicacao.Dados.labels));
+
+            var motivosColors = [];
+
+            chartLabels.forEach(function (val, ind) {
+                motivosColors.push(colors[ind+1]);
+            });
+
+            var optionsUltimoGrafico = {
+                chart: {
+                    width: '500px',
+                    type: 'pie',
+                },
+                colors: motivosColors,
+                dataLabels: {
+                    enabled: false,
+                },
+                labels: chartLabels,
+                series: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.GraficoMotivoNaoAplicacao.Dados.series)),
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            }
+
+            var chart = new ApexCharts(
+                document.querySelector("#myChart4"),
+                optionsUltimoGrafico
+            );
+
+            chart.render();
+
+
+            $('#form-pesquisa').submit(function (e) {
+                var de = $('#De').val();
+                var ate = $('#Ate').val();
+                var especialista = $('#Especialista').val();
+                var equipe = $('#equipe').val();
+
+                if (especialista != '' && equipe != '') {
+                    e.preventDefault();
+                    core.notify.showNotify('Não é possível aplicar filtro simultâneo Especialista e Equipe', 'info', 'top-center');
+                    return;
+                }
+
+                if (de == "" && ate == "") {
+                    e.preventDefault();
+                    core.notify.showNotify('Os campos de data não podem estar vazios', 'info', 'top-center');
+                    return;
+                }
+            
+                if (moment(de, 'DD/MM/YYYY').isAfter(moment(ate, 'DD/MM/YYYY')))
+                {
+                    e.preventDefault();
+                    core.notify.showNotify('Selecione um range de data válido', 'info', 'top-center');
+                    return;
+                }
+
+                $('#De').val(moment(de, 'DD/MM/YYYY').format('YYYY-MM-DD'));
+                $('#Ate').val(moment(ate,'DD/MM/YYYY' ).format('YYYY-MM-DD'));
+            });
+        });
+    </script>
+}

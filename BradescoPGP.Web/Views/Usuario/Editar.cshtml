@@ -1,0 +1,249 @@
+﻿@model BradescoPGP.Web.Models.UsuarioViewModel
+
+@{
+    ViewBag.Title = "Editar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="box box-danger m-b-5">
+    <div class="box-header">
+        <h3 class="box-title">Edição de informações</h3>
+        @*<div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                    <i class="fa fa-minus"></i>
+                </button>
+            </div>*@
+    </div>
+
+    <form action="@Url.Action("Editar", "Usuario")" method="post" id="form-edit-user">
+        <div class="box-body with-border">
+            <div class="form-inline custom-search-inputs">
+                <div class="row relative">
+                    <div id="main-search">
+                        
+                        @Html.HiddenFor(u => u.UsuarioId)
+
+                        @if (Model == null && ViewBag.error != null)
+                        {
+                            <label class="text-danger mx-2">@Html.Raw(ViewBag.error)</label>
+
+                        }
+                        else
+                        {
+                            <div class="">
+                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                    <div class="form-group">
+                                        @Html.LabelFor(m => m.Nome) <br class="hidden-md hidden-sm hidden-xs" />
+                                        @Html.TextBoxFor(m => m.Nome, new { @class = "form-control" })
+                                        <br />
+                                        @Html.ValidationMessageFor(m => m.Nome, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                    <div class="form-group">
+                                        @Html.LabelFor(m => m.Matricula) <br class="hidden-md hidden-sm hidden-xs" />
+                                        @Html.TextBoxFor(m => m.Matricula, new { @class = "form-control", @readonly = "readonly" })
+                                        <br />
+                                        @Html.ValidationMessageFor(m => m.Matricula, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                    <div class="form-group">
+                                        @Html.LabelFor(m => m.NomeUsuario) <br class="hidden-md hidden-sm hidden-xs" />
+                                        @Html.TextBoxFor(m => m.NomeUsuario, new { @class = "form-control", @readonly = "readonly" })
+                                        <br />
+                                        @Html.ValidationMessageFor(m => m.NomeUsuario, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                    <div class="form-group">
+                                        @Html.LabelFor(m => m.NomeSupervisor) <br class="hidden-md hidden-sm hidden-xs" />
+                                        <select name="NomeSupervisor" id="NomeSupervisor" class="form-control">
+                                            @foreach (var item in ViewData["Supervisores"] as List<string>)
+                                            {
+                                                var selected = item == Model.NomeSupervisor ? "selected=\"selected\"" : string.Empty;
+
+                                                <option value="@item" @selected>@item</option>
+                                            }
+                                        </select>
+                                        <br />
+                                        @Html.ValidationMessageFor(m => m.NomeSupervisor, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.MatriculaSupervisor) <br class="hidden-md hidden-sm hidden-xs" />
+                                            @Html.TextBoxFor(m => m.MatriculaSupervisor, new { @class = "form-control", @readonly = "readonly" })
+                                            <br />
+                                            @Html.ValidationMessageFor(m => m.MatriculaSupervisor, null, new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                    <div class="form-group">
+                                        @Html.LabelFor(m => m.Equipe) <br class="hidden-md hidden-sm hidden-xs" />
+                                        <select name="Equipe" id="Equipe" class="form-control">
+                                            @foreach (var item in ViewData["Equipes"] as List<string>)
+                                            {
+                                                var selected = item == Model.Equipe ? "selected=\"selected\"" : string.Empty;
+
+                                                <option value="@item" @selected>@item.ToUpper()</option>
+                                            }
+                                        </select>
+                                        <br />
+                                        @Html.ValidationMessageFor(m => m.Equipe, null, new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.Perfil) <br class="hidden-md hidden-sm hidden-xs" />
+                                    @*@Html.DropDownListFor(m => m.PerfilId, ViewData["Perfil"] as SelectList, new { @class = "form-control" })*@
+
+                                    <select name="PerfilId" id="PerfilId" class="form-control">
+                                        @foreach (var item in ViewData["Perfis"] as List<BradescoPGP.Repositorio.Perfil>)
+                                        {
+                                            var selected = item.PerfilId == Model.PerfilId ? "selected=\"selected\"" : string.Empty;
+
+                                            <option value="@item.PerfilId" @selected>@item.Descricao</option>
+                                        }
+                                    </select>
+
+                                </div>
+                            </div>
+                            @*<div class="col-lg-4 col-md-4 col-sm-6 col-xs-12 m-b-10">
+                                    <div class="form-group">
+                                        @Html.LabelFor(m => m.TipoUsuario) <br class="hidden-md hidden-sm hidden-xs" />
+                                        <select class="form-control" name="TipoUsuario">
+                                            <option value="Ativo">Ativo</option>
+                                            <option value="Receptivo">Receptivo</option>
+                                        </select>
+                                    </div>
+                                </div>*@
+
+                            <div class="col-lg-3 col-md-1 col-sm-12 col-xs-12 pull-right">
+                                <div class="pull-right">
+
+                                    @if (ViewBag.error != null)
+                                    {
+                                        <label class="text-danger mr-4">@Html.Raw(ViewBag.error)</label>
+
+                                    }
+                                    <a href="@Url.Action("Perfil", "Usuario")" class="btn btn-danger mr-4">Voltar</a>
+                                    <button class="btn btn-success mr-4">Salvar</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="display:flex; text-align:left">
+    <div class="modal fade" id="modal-confirmacao-logoff" tabindex="-1" role="dialog" aria-labelledby="btnDetalhe" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content scroll-modal" style="border-radius:10px">
+                <div class="modal-body">
+                    <h4 class="text-center">
+                        Você esta prestes a altrar seus dados, caso deseja proseguir, sera necessário fazer o login novamente.
+                    </h4>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-lg-12 pull-right">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-gradient" id="btn-confirmar-logoff">
+                            Ok, Pode continuar.
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+@section Scripts{
+    @if (((System.Security.Claims.ClaimsIdentity)User.Identity).FindFirst("matricula").Value == Request.Params.Get("matricula"))
+    {
+        <script>
+            $('#modal-confirmacao-logoff').modal('show');
+        </script>
+    }
+    <script>
+        var objetoSupervisor = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((Dictionary<string, string>)ViewData["Matriculas"]));
+
+        var podeFazerLogoff = false;
+
+        //Adiciona o usuario como gestor caso o perfil seja master
+        $(document).on('change', "#PerfilId", function () {
+            var nome = $('#Nome').val();
+            var perfilId = $(this).val();
+
+            if ((perfilId == "1" || perfilId == 2) && nome != "") {
+                var options = $('#NomeSupervisor option');
+                $.each(options, function (i, v) {
+                    var teste = "";
+                    if (v.text.toLowerCase() == nome.toLowerCase()) {
+                         $(this).remove();
+                    }
+                });
+
+                $('#NomeSupervisor').append(`<option value="${nome.toUpperCase()}">${nome.toUpperCase()}</option>`);
+            }
+            else
+            {
+                var options = $('#NomeSupervisor option');
+                $.each(options, function (i, v) {
+                    var teste = "";
+                    if (v.text.toLowerCase() == nome.toLowerCase()) {
+                        $(this).remove();
+                    }
+                });
+            }
+        });
+
+        //Seta matricula do supervisor selecionado
+        $('#MatriculaSupervisor').val(objetoSupervisor[$('#NomeSupervisor').val()]);
+
+        //Seta matricula do supervisor selecionado quando alterado
+        $(document).on('change', '#NomeSupervisor', function (e) {
+            var supervisorSelecionado = $(this).val();
+            var nome = $('#Nome').val().toUpperCase();
+
+            if (supervisorSelecionado in objetoSupervisor) {
+                $('#MatriculaSupervisor').val(objetoSupervisor[supervisorSelecionado]);
+            } else {
+                var matricula = $('#Matricula').val();
+                $('#MatriculaSupervisor').val(matricula);
+            }
+        });
+
+        $("#btn-confirmar-logoff").click(function () {
+            podeFazerLogoff = true;
+            $('#modal-confirmacao-logoff').modal('hide');
+        });
+
+        $('#modal-confirmacao-logoff').on('hidden.bs.modal', function () {
+            if (!podeFazerLogoff)
+                location.href = '@Url.Action("Perfil")';
+        });
+
+        $('#form-edit-user').submit(function () {
+            var matriculaAtualizacao = $('#Matricula').val();
+        });
+
+    </script>
+
+}
